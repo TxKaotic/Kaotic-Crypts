@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaotic Crypts</title>
+    <title>Document</title>
      <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -45,7 +45,7 @@
           <div style="height:12px"></div>
 
           <div class="row" style="justify-content: space-between">
-            <span class="pill" id="levelPill">Lv. 1</span>
+            <span class="pill" id="levelPill">Lvl 1</span>
             <span class="pill" id="goldPill">Gold: 0</span>
           </div>
 
@@ -167,9 +167,20 @@
   </dialog>
 
   <!-- Glimmer overlay element -->
-  <div id="fx"></div>    
+  <div id="fx"></div>   
+  <!-- Mobile Mini HUD (HP/XP) -->
+<div id="miniHud" aria-hidden="true">
+  <div class="mini-row">
+    <span class="mini-label">HP</span>
+    <div class="bar mini"><span id="miniHpBar" class="hp" style="--val:100%"></span></div>
+    <span id="miniHpText" class="mini-text">20/20</span>
+  </div>
+  <div class="mini-row">
+    <span class="mini-label">XP</span>
+    <div class="bar mini"><span id="miniXpBar" class="xp" style="--val:0%"></span></div>
+    <span id="miniXpText" class="mini-text">0/10</span>
+  </div>
+</div> 
 <script src="./app.js"></script>
 </body>
-
 </html>
-
