@@ -175,7 +175,88 @@ const SWORDS = [
     weight: 1,
   },
 ];
-
+const SHIELDS = [
+  {
+    key: "wooden_shield",
+    name: "Wooden Shield",
+    def: 1,
+    rollChance: 10,
+    minDepth: 1,
+    weight: 60, // common
+  },
+  {
+    key: "hide_kite",
+    name: "Hide Kite",
+    def: 2,
+    rollChance: 12,
+    minDepth: 2,
+    weight: 45,
+  },
+  {
+    key: "bronze_roundel",
+    name: "Bronze Roundel",
+    def: 2,
+    rollChance: 16,
+    minDepth: 3,
+    weight: 35,
+  },
+  {
+    key: "iron_targe",
+    name: "Iron Targe",
+    def: 3,
+    rollChance: 18,
+    minDepth: 5,
+    weight: 28,
+  },
+  {
+    key: "steel_heater",
+    name: "Steel Heater",
+    def: 3,
+    rollChance: 22,
+    minDepth: 7,
+    weight: 20,
+  },
+  {
+    key: "knights_wall",
+    name: "Knight’s Wall",
+    def: 4,
+    rollChance: 24,
+    minDepth: 9,
+    weight: 14,
+  },
+  {
+    key: "obsidian_scutum",
+    name: "Obsidian Scutum",
+    def: 4,
+    rollChance: 28,
+    minDepth: 12,
+    weight: 9,
+  },
+  {
+    key: "runed_aegis",
+    name: "Runed Aegis",
+    def: 5,
+    rollChance: 30,
+    minDepth: 15,
+    weight: 6,
+  },
+  {
+    key: "crystal_ward",
+    name: "Crystal Ward",
+    def: 5,
+    rollChance: 35,
+    minDepth: 18,
+    weight: 3,
+  },
+  {
+    key: "sunsteel_barrier",
+    name: "Sunsteel Barrier",
+    def: 6,
+    rollChance: 40,
+    minDepth: 22,
+    weight: 1, // ultra-rare
+  },
+];
 const ROOM_TAGS = [
   "Calm",
   "Damp",
@@ -274,7 +355,7 @@ const initialState = () => ({
   exitPos: null,
   exitDiscovered: false,
   // Equipment
-  equipped: { weapon: null },
+  equipped: { weapon: null, shield: null }, // ← added shield slot
   // Trader cooldown to avoid back-to-back encounters
   traderCooldown: 0,
 });
@@ -321,12 +402,11 @@ function weightedPick(items, weightKey = "weight") {
 function sanitizeState() {
   if (!S) S = initialState();
 
-  // Ensure equipped structure exists
   if (!S.equipped || typeof S.equipped !== "object")
-    S.equipped = { weapon: null };
+    S.equipped = { weapon: null, shield: null };
   if (!("weapon" in S.equipped)) S.equipped.weapon = null;
+  if (!("shield" in S.equipped)) S.equipped.shield = null; // ← ensure shield
 
-  // Misc guards
   if (typeof S.traderCooldown !== "number") S.traderCooldown = 0;
   if (!Array.isArray(S.inventory)) S.inventory = [];
   if (!S.mapSize) S.mapSize = 7;
@@ -336,7 +416,6 @@ function sanitizeState() {
     );
   if (!S.pos) S.pos = { x: 0, y: 0 };
 
-  // Old/incompatible enemy objects -> drop them
   if (
     S.enemy &&
     (typeof S.enemy.hp !== "number" || !Array.isArray(S.enemy.atk))
@@ -344,7 +423,6 @@ function sanitizeState() {
     S.enemy = null;
   }
 
-  // Exit
   if (!S.exitPos) generateExit();
 }
 
@@ -404,6 +482,7 @@ function renderInventory() {
     const meta = LOOT_TABLE.find((l) => l.key === it.key);
     const div = document.createElement("div");
     div.className = "item";
+
     if (meta) {
       div.innerHTML = `<span>• ${meta.name}</span> <small>x${it.qty}</small>`;
       div.style.cursor = "pointer";
@@ -411,7 +490,7 @@ function renderInventory() {
       div.addEventListener("click", () => useSpecificItem(it.key));
     } else if (it.key === "weapon") {
       const equippedMark =
-        S.equipped && S.equipped.weapon && S.equipped.weapon.id === it.id
+        S.equipped?.weapon && S.equipped.weapon.id === it.id
           ? " <small>(E)</small>"
           : "";
       div.innerHTML = `<span>🗡️ ${it.name} <small>+${it.atk} • ${it.rarity}${equippedMark}</small></span>`;
@@ -422,9 +501,23 @@ function renderInventory() {
       div.addEventListener("keypress", (e) => {
         if (e.key === "Enter") equipWeaponById(it.id);
       });
+    } else if (it.key === "shield") {
+      const equippedMark =
+        S.equipped?.shield && S.equipped.shield.id === it.id
+          ? " <small>(E)</small>"
+          : "";
+      div.innerHTML = `<span>🛡️ ${it.name} <small>${it.def} DEF • ${it.rollChance}% • ${it.rarity}${equippedMark}</small></span>`;
+      div.style.cursor = "pointer";
+      div.title = "Click to equip shield";
+      div.tabIndex = 0;
+      div.addEventListener("click", () => equipShieldById(it.id));
+      div.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") equipShieldById(it.id);
+      });
     } else {
       div.textContent = it.key;
     }
+
     wrap.appendChild(div);
   });
   if (!S.inventory.length) wrap.textContent = "(Empty)";
@@ -646,11 +739,18 @@ function equipWeaponById(id) {
   renderStats();
 }
 
+function priceForShield(def, rollChance, source = "drop") {
+  // Expected mitigation scales value: def × (chance%)
+  const eff = def * (rollChance / 100); // e.g., def 3 @ 20% ≈ 0.6 effective
+  return source === "shop"
+    ? Math.round(60 + eff * 140 + S.depth * 12) // pricier in shops + depth
+    : Math.round(30 + eff * 90 + Math.max(0, S.depth - 1) * 8); // drop value
+}
+
 // app.js — REPLACE your openInventoryModal() with this
 function openInventoryModal() {
   const m = document.getElementById("invModal");
   const list = document.getElementById("invList");
-
   list.innerHTML = "";
   if (!S.inventory.length) list.innerHTML = "<p>(Inventory empty)</p>";
 
@@ -672,23 +772,27 @@ function openInventoryModal() {
       btn.addEventListener("click", () => equipWeaponById(it.id));
       list.appendChild(row);
       list.appendChild(btn);
+    } else if (it.key === "shield") {
+      const row = document.createElement("p");
+      row.innerHTML = `<strong>🛡️ ${it.name}</strong> <small>${it.def} DEF • ${it.rollChance}% • ${it.rarity}</small>`;
+      const btn = document.createElement("button");
+      btn.textContent = "Equip";
+      btn.addEventListener("click", () => equipShieldById(it.id));
+      list.appendChild(row);
+      list.appendChild(btn);
     }
   });
 
-  // --- Modal swap: if combat is up, close it and remember to resume after inventory closes
+  // If combat was open, temporarily close it to avoid dialog conflicts
   if (combatModal && combatModal.open) {
     resumeCombatAfterInv = true;
     try {
       combatModal.close();
     } catch {}
   }
-
   try {
     m.showModal();
-  } catch {
-    /* already open or unsupported */
-  }
-
+  } catch {}
   renderStats();
 }
 
@@ -797,6 +901,79 @@ function maybeDropWeapon() {
   flashGlimmer();
 }
 
+// ==============================
+// Shields: drops, equip, pricing
+// ==============================
+function priceForShield(def, source = "drop") {
+  return source === "shop"
+    ? 50 + def * 35 + S.depth * 10
+    : 25 + def * 20 + Math.max(0, S.depth - 1) * 5;
+}
+function rarityNameShield(def) {
+  return def >= 5
+    ? "epic"
+    : def >= 3
+    ? "rare"
+    : def >= 2
+    ? "uncommon"
+    : "common";
+}
+function pickDropShield() {
+  const pool = SHIELDS.filter((s) => s.minDepth <= S.depth);
+  return weightedPick(pool.length ? pool : SHIELDS);
+}
+function makeShieldFromTemplate(tpl, source = "drop") {
+  return {
+    key: "shield",
+    id: uid(),
+    name: tpl.name,
+    def: tpl.def,
+    rollChance: tpl.rollChance, // % chance to reduce damage
+    rarity: rarityNameShield(tpl.def),
+    price: priceForShield(tpl.def, source),
+    source,
+  };
+}
+function addShield(sh) {
+  S.inventory.push(sh);
+  renderInventory();
+  renderStats();
+}
+function removeShieldById(id) {
+  const idx = S.inventory.findIndex((i) => i.key === "shield" && i.id === id);
+  if (idx >= 0) {
+    S.inventory.splice(idx, 1);
+    renderInventory();
+    renderStats();
+    return true;
+  }
+  return false;
+}
+function equipShieldById(id) {
+  const sh = S.inventory.find((i) => i.key === "shield" && i.id === id);
+  if (!sh) return;
+  if (S.equipped.shield) S.inventory.push(S.equipped.shield); // swap out
+  S.equipped.shield = sh;
+  removeShieldById(id);
+  addLog(
+    `You equip <strong>${sh.name}</strong> <span class="good">(${sh.def} DEF • ${sh.rollChance}% block)</span>.`,
+    "good"
+  );
+  renderInventory();
+  renderStats();
+}
+function maybeDropShield() {
+  if (!RNG.chance(15)) return; // ~15% chance to drop a shield
+  const tpl = pickDropShield();
+  const sh = makeShieldFromTemplate(tpl, "drop");
+  addShield(sh);
+  addLog(
+    `You find a <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>!`,
+    "good"
+  );
+  flashGlimmer();
+}
+
 // ------------------------------
 // Progression
 // ------------------------------
@@ -871,13 +1048,30 @@ function rollEncounter(opts = {}) {
 
 function enemyAttack() {
   if (!S.enemy) return;
-  const dmg = RNG.int(S.enemy.atk[0], S.enemy.atk[1]);
+
+  let dmg = RNG.int(S.enemy.atk[0], S.enemy.atk[1]);
+  let reduced = 0;
+
+  const sh = S.equipped?.shield;
+  if (sh && RNG.chance(sh.rollChance)) {
+    reduced = Math.min(dmg, sh.def);
+    dmg -= reduced;
+  }
+
+  if (reduced > 0) {
+    addCombatLog(
+      `🛡️ Your ${sh.name} reduces damage by <strong>${reduced}</strong>.`,
+      "good"
+    );
+  }
+
   S.hp = Math.max(0, S.hp - dmg);
   addCombatLog(
     `${S.enemy.name} strikes for <span class="bad">${dmg}</span>.`,
     "bad"
   );
   renderStats();
+
   if (S.hp <= 0) {
     addCombatLog("<strong>You collapse…</strong>", "bad");
     closeCombat(true);
@@ -921,14 +1115,14 @@ function playerAttack() {
       gainGold(gold);
       gainXP(xp);
       maybeDropWeapon();
+      maybeDropShield(); // ← NEW: chance to drop a shield
       S.enemy = null;
       setEncounterStatus("Idle");
       closeCombat();
 
       if (RNG.chance(5)) {
-        S.depth++;
         addLog("<em>You feel the dungeon pull you deeper within...</em>");
-        descend();
+        descend(); // ensures map/reset like taking stairs
       }
       renderStats();
     } else {
@@ -1090,6 +1284,29 @@ function renderShopUI(title, offers, weaponsForSale) {
         }
       });
       sellActions.appendChild(b);
+
+      S.inventory
+        .filter((x) => x.key === "shield")
+        .forEach((sh) => {
+          const price = Math.max(
+            1,
+            Math.floor((sh.price || priceForShield(sh.def, "drop")) * 0.5)
+          );
+          const p = document.createElement("p");
+          p.innerHTML = `<strong>🛡️ ${sh.name}</strong> <small>${sh.def} DEF • ${sh.rollChance}% • ${sh.rarity}</small> — ${price}g`;
+          sellList.appendChild(p);
+          const b = document.createElement("button");
+          b.textContent = `Sell ${sh.name}`;
+          b.addEventListener("click", () => {
+            if (removeShieldById(sh.id)) {
+              S.gold += price;
+              addLog(`Sold ${sh.name} for ${price}g.`, "good");
+              renderStats();
+              renderShopUI(title, offers, weaponsForSale);
+            }
+          });
+          sellActions.appendChild(b);
+        });
     });
 
   renderStats();
