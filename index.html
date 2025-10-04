@@ -1,0 +1,173 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+     <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="container">
+    <div class="header">
+      <div class="title">
+        <h1>Kaotic Crypts ⚔️</h1>
+        <div class="subtitle">Choose your path.</div>
+      </div>
+      <div class="controls">
+        <button id="newGame" class="btn-accent" title="Start a new run (N)">New Game</button>
+        <button id="saveGame" title="Save progress">Save</button>
+        <button id="loadGame" title="Load save">Load</button>
+        <button id="aboutBtn" class="btn-ghost" title="About & Tips">About</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Player Panel -->
+      <section class="card" aria-labelledby="playerPanel">
+        <header class="card-h">
+          <div class="row"><span>Hero</span><span id="playerName" class="pill">Adventurer</span></div>
+          <span class="pill" id="depthPill" title="Dungeon depth">Delve 1</span>
+        </header>
+        <div class="card-b">
+          <div class="stats" role="group" aria-label="Vitals">
+            <div class="stat">
+              <div class="row" style="justify-content: space-between"><span>HP</span><span id="hpText">20/20</span></div>
+              <div class="bar"><span id="hpBar" class="hp" style="--val:100%"></span></div>
+            </div>
+            <div class="stat">
+              <div class="row" style="justify-content: space-between"><span>XP</span><span id="xpText">0/10</span></div>
+              <div class="bar"><span id="xpBar" class="xp" style="--val:0%"></span></div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="row" style="justify-content: space-between">
+            <span class="pill" id="levelPill">Lv. 1</span>
+            <span class="pill" id="goldPill">Gold: 0</span>
+          </div>
+
+          <div style="height:16px"></div>
+
+          <div aria-live="polite" aria-atomic="true">
+            <strong>Inventory</strong>
+            <div id="inventory" class="items" style="margin-top:8px"></div>
+          </div>
+
+          <div style="height:16px"></div>
+
+          <strong>Map</strong>
+          <div id="map" class="map" role="grid" aria-label="Mini map"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Main Panel -->
+      <section class="card" aria-labelledby="mainPanel">
+        <header class="card-h">
+          <div class="row"><span id="roomTitle">Dank Passage</span><span id="roomTags" class="pill">Calm</span></div>
+          <div class="row" style="gap:6px">
+            <span class="pill" id="encounterPill" title="Encounter status">Idle</span>
+          </div>
+        </header>
+        <div class="card-b">
+          <div class="log" id="log" role="log" aria-live="polite" aria-atomic="false"></div>
+
+          <div style="height:10px"></div>
+          <!-- <strong>Choose a direction</strong> -->
+          <div class="dpad" role="group" aria-label="Directions">
+            <span class="spacer"></span>
+            <button id="dirUp" title="North (W / ↑)">▲</button>
+            <span class="spacer"></span>
+            <button id="dirLeft" title="West (A / ←)">◄</button>
+            <button id="dirDown" title="South (S / ↓)">▼</button>
+            <button id="dirRight" title="East (D / →)">►</button>
+            <span class="spacer"></span>
+          </div>
+
+          <div class="actions" role="group" aria-label="Actions">
+            <button id="actRest" title="Rest (R) — Recover a little HP. Risk: 30% chance of an ambush.">Rest</button>
+            <button id="actWait" title="Wait (Space) — Pass time without moving. Small chance something finds you.">Wait</button>
+            <button id="actInventory" class="btn-accent" title="Open inventory (I). Usable in and out of combat.">Inventory</button>
+          </div>
+
+          <div style="height:10px"></div>
+          <div class="subtitle">Hotkeys: <span class="kbd">W/A/S/D</span> or <span class="kbd">↑/←/↓/→</span> Move • <span class="kbd">R</span> Rest • <span class="kbd">Space</span> Wait • <span class="kbd">I</span> Inventory • <span class="kbd">N</span> New • <span class="kbd">S</span> Save • <span class="kbd">L</span> Load</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Combat Modal -->
+  <dialog id="combatModal" aria-labelledby="combatTitle">
+    <div class="modal-h">
+      <div class="row"><strong id="combatTitle">Enemy Detected!</strong><span id="combatEnemyHp" class="pill">HP ?/?</span></div>
+      <button id="combatClose" class="btn-ghost" title="Close">✖</button>
+    </div>
+    <div class="modal-b">
+      <div id="combatLog" class="combat-log" role="log" aria-live="polite"></div>
+      <div style="height:12px"></div>
+      <div class="modal-actions">
+        <button id="combatAttack" class="btn-danger" title="Attack (A)">Attack</button>
+        <button id="combatFlee" title="Flee (F)">Flee</button>
+        <button id="combatInventory" title="Inventory (I)">Inventory</button>
+      </div>
+      <div style="margin-top:8px" class="subtitle">Hotkeys: <span class="kbd">A</span> Attack • <span class="kbd">F</span> Flee • <span class="kbd">I</span> Inventory • <span class="kbd">Esc</span> Close</div>
+    </div>
+  </dialog>
+
+  <!-- Trader Modal (buy & sell) -->
+  <dialog id="shopModal" aria-labelledby="shopTitle">
+    <div class="modal-h">
+      <div class="row"><strong id="shopTitle">A Wandering Trader</strong><span class="pill" id="shopGold">Gold: 0</span></div>
+      <button id="shopClose" class="btn-ghost" title="Close">✖</button>
+    </div>
+    <div class="modal-b">
+      <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap">
+        <div style="flex:1; min-width:260px">
+          <strong>Buy</strong>
+          <div id="shopList" class="log" style="height:auto; max-height:240px"></div>
+          <div class="modal-actions" id="shopActions"></div>
+        </div>
+        <div style="flex:1; min-width:260px">
+          <strong>Sell (50% value)</strong>
+          <div id="sellList" class="log" style="height:auto; max-height:240px"></div>
+          <div class="modal-actions" id="sellActions"></div>
+        </div>
+      </div>
+      <div style="margin-top:8px" class="subtitle">Tip: You can sell items you don't need for half their listed price.</div>
+    </div>
+  </dialog>
+
+  <!-- Inventory Modal (usable any time) -->
+  <dialog id="invModal" aria-labelledby="invTitle">
+    <div class="modal-h">
+      <div class="row"><strong id="invTitle">Inventory</strong><span class="pill" id="invGold">Gold: 0</span></div>
+      <button id="invClose" class="btn-ghost" title="Close">✖</button>
+    </div>
+    <div class="modal-b">
+      <div id="invList" class="log" style="height:auto; max-height:260px"></div>
+    </div>
+  </dialog>
+
+  <dialog id="about">
+    <form method="dialog" style="max-width:640px">
+      <h3>About</h3>
+      <p>Explore the dungeon to become the strongest to exist.</p>
+      <ul>
+        
+        <li>Keyboard shortcuts for fast play.</li>
+        <li>LocalStorage save slot (<code>retro-dungeon-save</code>).</li>
+      </ul>
+      <menu style="margin-top:10px">
+        <button value="cancel">Close</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- Glimmer overlay element -->
+  <div id="fx"></div>    
+<script src="./app.js"></script>
+</body>
+</html>
