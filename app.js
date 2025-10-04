@@ -72,21 +72,21 @@ const ENEMIES = [
 const LOOT_TABLE = [
   {
     key: "potion",
-    name: "Basic Potion",
+    name: "Basic Health Potion",
     kind: "consumable",
     heal: 5,
     price: 12,
   },
   {
     key: "mega",
-    name: "Strong Potion",
+    name: "Strong Health Potion",
     kind: "consumable",
     heal: 15,
     price: 25,
   },
   {
     key: "giga",
-    name: "Giga Potion",
+    name: "Giga Health Potion",
     kind: "consumable",
     heal: 20,
     price: 64,
@@ -1489,3 +1489,4 @@ document
 
 // Boot
 newGame();
+
