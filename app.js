@@ -72,21 +72,21 @@ const ENEMIES = [
 const LOOT_TABLE = [
   {
     key: "potion",
-    name: "Basic Health Potion",
+    name: "Basic Potion",
     kind: "consumable",
     heal: 5,
     price: 12,
   },
   {
     key: "mega",
-    name: "Strong Health Potion",
+    name: "Strong Potion",
     kind: "consumable",
     heal: 15,
     price: 25,
   },
   {
     key: "giga",
-    name: "Giga Health Potion",
+    name: "Giga Potion",
     kind: "consumable",
     heal: 20,
     price: 64,
@@ -344,12 +344,20 @@ function renderStats() {
   setBar($("#hpBar"), S.hp, S.maxHp, $("#hpText"));
   setBar($("#xpBar"), S.xp, S.xpToNext, $("#xpText"));
   $("#goldPill").textContent = `Gold: ${S.gold}`;
-  $("#levelPill").textContent = `Lv. ${S.level}`;
+  $("#levelPill").textContent = `Lvl ${S.level}`;
   $("#playerName").textContent = S.name;
   $("#depthPill").textContent = `Delve ${S.depth}`;
   if (S.enemy) $("#combatEnemyHp").textContent = `HP ${S.enemy.hp}`;
   $("#shopGold").textContent = `Gold: ${S.gold}`;
   $("#invGold").textContent = `Gold: ${S.gold}`;
+
+  // --- Mini HUD mirrors (only present on mobile; safe to no-op if missing)
+  const miniHpBar = document.getElementById("miniHpBar");
+  if (miniHpBar)
+    setBar(miniHpBar, S.hp, S.maxHp, document.getElementById("miniHpText"));
+  const miniXpBar = document.getElementById("miniXpBar");
+  if (miniXpBar)
+    setBar(miniXpBar, S.xp, S.xpToNext, document.getElementById("miniXpText"));
 }
 
 function renderInventory() {
@@ -1489,4 +1497,3 @@ document
 
 // Boot
 newGame();
-
