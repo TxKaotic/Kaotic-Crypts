@@ -29,6 +29,7 @@ const ENEMIES = [
     gold: [1, 3],
     xp: 2,
     img: "./assets/ratSVG.svg",
+    minDepth: 1,
   },
   {
     key: "bat",
@@ -38,6 +39,7 @@ const ENEMIES = [
     gold: [2, 5],
     xp: 3,
     img: "assets/batSVG.svg",
+    minDepth: 1,
   },
   {
     key: "slime",
@@ -47,6 +49,7 @@ const ENEMIES = [
     gold: [3, 7],
     xp: 3,
     img: "./assets/slimeSVG.svg",
+    minDepth: 1,
   },
   {
     key: "skeleton",
@@ -56,6 +59,7 @@ const ENEMIES = [
     gold: [5, 10],
     xp: 8,
     img: "assets/crackedskullSVG.svg",
+    minDepth: 3,
   },
   {
     key: "mage",
@@ -65,6 +69,27 @@ const ENEMIES = [
     gold: [6, 12],
     xp: 10,
     img: "assets/wizardSVG.svg",
+    minDepth: 5,
+  },
+  {
+    key: "mage",
+    name: "Tumeken's Guardian",
+    hp: 32,
+    atk: [6, 10],
+    gold: [20, 30],
+    xp: 25,
+    img: "assets/tumekensguardianSVG.svg",
+    minDepth: 8,
+  },
+  {
+    key: "mage",
+    name: "Tumeken's Shadow",
+    hp: 60,
+    atk: [5, 20],
+    gold: [100, 300],
+    xp: 250,
+    img: "assets/temekensshadowSVG.svg",
+    minDepth: 10,
   },
 ];
 
@@ -321,6 +346,18 @@ function sanitizeState() {
 
   // Exit
   if (!S.exitPos) generateExit();
+}
+
+// --- Helper: only allow enemies whose required depth is met ---
+function eligibleEnemies(depth) {
+  const req = (e) => e.minDepth ?? 1;
+  const allowed = ENEMIES.filter((e) => req(e) <= depth);
+  if (allowed.length) return allowed;
+
+  // Fallback: if nothing matches (e.g., all are gated too high),
+  // use the earliest-available group instead of crashing.
+  const minReq = Math.min(...ENEMIES.map(req));
+  return ENEMIES.filter((e) => req(e) === minReq);
 }
 
 // Glimmer effect
@@ -789,12 +826,16 @@ function gainGold(g) {
 // ------------------------------
 function rollEncounter(opts = {}) {
   // enemy 45%, loot 15%, trap 12%, weapon trader 3%, general trader 2%, empty 23%
-  const { forbidLoot = false } = opts; // ← new: lets us disable item finds (e.g., during rest)
+  const { forbidLoot = false } = opts;
   const r = RNG.int(1, 100);
 
   if (r <= 45) {
-    const pool = ENEMIES.filter((e) => e.hp <= 10 + S.depth * 4);
-    const meta = RNG.pick(pool.length ? pool : ENEMIES);
+    // Respect depth gate first, then apply your scaling cap as a soft filter
+    const byDepth = eligibleEnemies(S.depth);
+    const byScale = byDepth.filter((e) => e.hp <= 10 + S.depth * 4);
+    const pickFrom = byScale.length ? byScale : byDepth;
+
+    const meta = RNG.pick(pickFrom);
     S.enemy = JSON.parse(JSON.stringify(meta));
     setEncounterStatus("Enemy!");
     openCombat(
@@ -802,8 +843,6 @@ function rollEncounter(opts = {}) {
     );
   } else if (r <= 60) {
     if (forbidLoot) {
-      // While resting, you shouldn't randomly "find" items.
-      // Treat this roll as a quiet moment instead.
       addLog("You keep still; nothing turns up while you rest.");
     } else {
       const loot = RNG.pick(LOOT_TABLE);
@@ -826,7 +865,7 @@ function rollEncounter(opts = {}) {
     openShop(); // general trader
     S.traderCooldown = 8;
   } else {
-    addLog("The corridor stretches on in eerie silence.");
+    addLog("This room appears empty.");
   }
 }
 
