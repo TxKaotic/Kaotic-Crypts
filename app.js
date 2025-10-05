@@ -18,7 +18,7 @@ const RNG = {
     return Math.random() * 100 < pct;
   },
 };
-
+const TOKEN_MULT = 1.0; // tune later (e.g., 1.25 if you want juicier rewards)
 // ---- Meta (stubbed) ----
 // Persisted player-wide upgrades (not items). Adjust values here to test.
 const META_KEY = "retro-dungeon-meta";
@@ -2797,4 +2797,5 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
+
 
