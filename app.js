@@ -260,21 +260,29 @@ const LOOT_TABLE = [
     price: 12,
   },
   {
-    key: "strong",
-    name: "Strong Health Potion",
+    key: "potion",
+    name: "Health Potion",
     kind: "consumable",
     heal: 15,
     price: 25,
   },
   {
+    key: "strong",
+    name: "Strong Health Potion",
+    kind: "consumable",
+    heal: 25,
+    price: 40,
+  },
+  {
     key: "giga",
     name: "Giga Health Potion",
     kind: "consumable",
-    heal: 20,
-    price: 64,
+    heal: 35,
+    price: 80,
   },
   { key: "bomb", name: "Bomb", kind: "consumable", dmg: 10, price: 40 },
   { key: "toxic", name: "Toxic Bomb", kind: "consumable", dmg: 15, price: 80 },
+  { key: "tnt", name: "TNT", kind: "consumable", dmg: 75, price: 120 },
 ];
 
 // Weapon templates — higher power => rarer (weights drop with atk), unlock by depth
