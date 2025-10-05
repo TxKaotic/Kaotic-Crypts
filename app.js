@@ -1,7 +1,5 @@
-// app.js
-
 // =============================================================
-// Retro Dungeon Crawler — Single‑File Template
+// Retro Dungeon Crawler — Single-File Template
 // Directional movement • Hidden Exit • Empty revisits • Weapon drops & equip • Weapon Trader
 // =============================================================
 
@@ -719,12 +717,21 @@ function checkExitContact() {
       addLog('You discover a hidden stairwell <strong>★</strong>!', 'good');
       renderMap();
     }
-    const ok = confirm(`Descend to Depth ${S.depth + 1}?`);
-    if (ok) {
-      descend();
-      return true;
-    }
-    addLog('You decide to explore a bit longer.');
+
+    // Event modal instead of confirm
+    openEventModal({
+      title: 'Hidden Stairwell',
+      img: 'assets/stairsSVG.svg',
+      html: `Descend to <strong>Depth ${
+        S.depth + 1
+      }</strong>? Who knows what lurks below.`,
+      primaryText: 'Descend',
+      secondaryText: 'Stay Here',
+      onPrimary: () => descend(),
+      onSecondary: () => addLog('You decide to explore a bit longer.'),
+    });
+
+    return true;
   }
   return false;
 }
@@ -1062,129 +1069,344 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function doTreasureChest() {
-  addLog('You find an old chest banded with iron.');
-  const roll = RNG.int(1, 100);
-  if (roll <= 15) {
-    // Mimic!
-    const byDepth = eligibleEnemies(S.depth);
-    const meta = RNG.pick(byDepth);
-    S.enemy = clone(meta);
-    setEncounterStatus('Mimic!');
-    openCombat(
-      `The chest sprouts fangs! It's a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
-    );
-    return;
-  }
-  if (roll <= 80) {
-    const gold = RNG.int(10 + S.depth, 25 + S.depth * 2);
-    addLog(`Inside: <strong>${gold}g</strong>.`, 'good');
-    gainGold(gold);
+// ---------- Generic Event Modal (two choices, no "X") ----------
+let __eventModal = null;
+
+function ensureEventModal() {
+  if (__eventModal) return __eventModal;
+
+  const d = document.createElement('dialog');
+  d.id = 'eventModal';
+  d.addEventListener('cancel', (e) => e.preventDefault()); // disable Esc-close
+
+  const wrap = document.createElement('div');
+  Object.assign(wrap.style, {
+    minWidth: 'min(520px, 92vw)',
+    maxWidth: '92vw',
+    padding: '18px 16px',
+    borderRadius: '14px',
+    border: '1px solid #263774',
+    background: 'linear-gradient(180deg, #0a0f1f, #070a15)',
+    color: '#e8edff',
+    textAlign: 'center',
+    fontFamily: 'inherit',
+  });
+
+  const img = document.createElement('img');
+  img.id = 'eventImg';
+  Object.assign(img.style, {
+    maxWidth: '60%',
+    maxHeight: '120px',
+    display: 'block',
+    margin: '0 auto 10px',
+    border: '1px solid #263774',
+    borderRadius: '12px',
+    imageRendering: 'pixelated',
+  });
+
+  const title = document.createElement('div');
+  title.id = 'eventTitle';
+  Object.assign(title.style, {
+    fontSize: '20px',
+    marginBottom: '6px',
+    color: '#c7d2ff',
+  });
+
+  const body = document.createElement('div');
+  body.id = 'eventBody';
+  Object.assign(body.style, { marginBottom: '14px', lineHeight: '1.35' });
+
+  const actions = document.createElement('div');
+  Object.assign(actions.style, {
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  });
+
+  const primary = document.createElement('button');
+  primary.id = 'eventPrimary';
+  primary.textContent = 'OK';
+  primary.style.padding = '10px 14px';
+  primary.style.borderRadius = '999px';
+  primary.style.border = '1px solid #c98d0b';
+  primary.style.cursor = 'pointer';
+  primary.style.font = 'inherit';
+  primary.style.minWidth = '140px';
+  primary.style.boxShadow = '0 8px 24px rgba(0,0,0,.35)';
+  primary.style.background = 'linear-gradient(180deg, #ffd76e, #ffb703)';
+  primary.style.color = '#2b2411';
+
+  const secondary = document.createElement('button');
+  secondary.id = 'eventSecondary';
+  secondary.textContent = 'Cancel';
+  secondary.style.padding = '10px 14px';
+  secondary.style.borderRadius = '999px';
+  secondary.style.border = '1px solid #3b425a';
+  secondary.style.cursor = 'pointer';
+  secondary.style.font = 'inherit';
+  secondary.style.minWidth = '140px';
+  secondary.style.background = 'transparent';
+  secondary.style.color = '#e8edff';
+
+  actions.appendChild(primary);
+  actions.appendChild(secondary);
+
+  wrap.appendChild(img);
+  wrap.appendChild(title);
+  wrap.appendChild(body);
+  wrap.appendChild(actions);
+  d.appendChild(wrap);
+  document.body.appendChild(d);
+
+  __eventModal = d;
+  return d;
+}
+
+function openEventModal({
+  title,
+  img,
+  html,
+  primaryText,
+  secondaryText,
+  onPrimary,
+  onSecondary,
+}) {
+  const d = ensureEventModal();
+  d.querySelector('#eventTitle').innerHTML = title || '';
+  d.querySelector('#eventBody').innerHTML = html || '';
+  const im = d.querySelector('#eventImg');
+  if (img) {
+    im.style.display = 'block';
+    im.src = img;
+    im.alt = title || 'event';
   } else {
-    const loot = RNG.pick(LOOT_TABLE);
-    addItem(loot.key, 1);
-    addLog(`Inside: <strong>${loot.name}</strong>.`, 'good');
+    im.style.display = 'none';
   }
+
+  const p = d.querySelector('#eventPrimary');
+  const s = d.querySelector('#eventSecondary');
+  p.textContent = primaryText || 'OK';
+  s.textContent = secondaryText || 'Cancel';
+
+  // Clear old handlers by replacing nodes
+  const pClone = p.cloneNode(true);
+  const sClone = s.cloneNode(true);
+  p.parentNode.replaceChild(pClone, p);
+  s.parentNode.replaceChild(sClone, s);
+
+  pClone.addEventListener('click', () => {
+    try {
+      onPrimary?.();
+    } finally {
+      closeEventModal();
+    }
+  });
+  sClone.addEventListener('click', () => {
+    try {
+      onSecondary?.();
+    } finally {
+      closeEventModal();
+    }
+  });
+
+  // Enter -> primary, Backspace -> secondary (Esc disabled)
+  d.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      pClone.click();
+    } else if (e.key.toLowerCase() === 'backspace') {
+      e.preventDefault();
+      sClone.click();
+    }
+  };
+
+  try {
+    d.showModal();
+  } catch {}
+}
+
+function closeEventModal() {
+  if (__eventModal?.open) {
+    try {
+      __eventModal.close();
+    } catch {}
+  }
+}
+
+// --------- Modal-based Events (no confirms) ----------
+
+function doTreasureChest() {
+  openEventModal({
+    title: 'Iron-Banded Chest',
+    img: 'assets/treasureSVG.svg',
+    html: 'A heavy chest sits half-buried in rubble. It could be a jackpot… or a trap.',
+    primaryText: 'Open the Chest',
+    secondaryText: 'Leave It',
+    onPrimary: () => {
+      const roll = RNG.int(1, 100);
+      if (roll <= 15) {
+        // Mimic!
+        const byDepth = eligibleEnemies(S.depth);
+        const meta = RNG.pick(byDepth);
+        S.enemy = clone(meta);
+        setEncounterStatus('Mimic!');
+        openCombat(
+          `The chest sprouts fangs! It's a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
+        );
+      } else if (roll <= 80) {
+        const gold = RNG.int(10 + S.depth, 25 + S.depth * 2);
+        addLog(`Inside: <strong>${gold}g</strong>.`, 'good');
+        gainGold(gold);
+      } else {
+        const loot = RNG.pick(LOOT_TABLE);
+        addItem(loot.key, 1);
+        addLog(`Inside: <strong>${loot.name}</strong>.`, 'good');
+      }
+    },
+    onSecondary: () => addLog('You leave the chest untouched.'),
+  });
 }
 
 function doFountain() {
-  addLog('You discover a faintly glowing fountain set in the wall.');
-  if (!confirm('Drink from the fountain?')) {
-    addLog('You decide against it and move on.');
-    return;
-  }
-  const roll = RNG.int(1, 100);
-  if (roll <= 40) {
-    const heal = 8 + Math.floor(S.depth / 3);
-    S.hp = Math.min(S.maxHp, S.hp + heal);
-    addLog(
-      `The water is rejuvenating. <span class="good">+${heal} HP</span>.`,
-      'good'
-    );
-  } else if (roll <= 70) {
-    const heal = 3 + Math.floor(S.depth / 5);
-    S.hp = Math.min(S.maxHp, S.hp + heal);
-    addLog(
-      `Cool and refreshing. <span class="good">+${heal} HP</span>.`,
-      'good'
-    );
-  } else if (roll <= 90) {
-    addLog('Nothing happens. Perhaps its magic is spent.');
-  } else {
-    const dmg = RNG.int(2, 5);
-    S.hp = Math.max(0, S.hp - dmg);
-    addLog(`Ugh—tainted! <span class="bad">-${dmg} HP</span>.`, 'bad');
-    if (S.hp <= 0) return onDeath();
-  }
-  renderStats();
+  openEventModal({
+    title: 'Glowing Fountain',
+    img: 'assets/fountainSVG.svg',
+    html: 'Waters shimmer with faint magic. Drink to risk boon or bane.',
+    primaryText: 'Drink',
+    secondaryText: 'Do Not Drink',
+    onPrimary: () => {
+      const roll = RNG.int(1, 100);
+      if (roll <= 40) {
+        const heal = 8 + Math.floor(S.depth / 3);
+        S.hp = Math.min(S.maxHp, S.hp + heal);
+        addLog(
+          `The water is rejuvenating. <span class="good">+${heal} HP</span>.`,
+          'good'
+        );
+      } else if (roll <= 70) {
+        const heal = 3 + Math.floor(S.depth / 5);
+        S.hp = Math.min(S.maxHp, S.hp + heal);
+        addLog(
+          `Cool and refreshing. <span class="good">+${heal} HP</span>.`,
+          'good'
+        );
+      } else if (roll <= 90) {
+        addLog('Nothing happens. Perhaps its magic is spent.');
+      } else {
+        const dmg = RNG.int(2, 5);
+        S.hp = Math.max(0, S.hp - dmg);
+        addLog(`Ugh—tainted! <span class="bad">-${dmg} HP</span>.`, 'bad');
+        if (S.hp <= 0) return onDeath();
+      }
+      renderStats();
+    },
+    onSecondary: () => addLog('You decide against it and move on.'),
+  });
 }
 
 function doCampfire() {
-  addLog('You come upon a smoldering campfire.');
-  if (!confirm('Rest by the fire?')) {
-    addLog('You keep your distance.');
-    return;
-  }
-  const heal = RNG.int(3, 7);
-  S.hp = Math.min(S.maxHp, S.hp + heal);
-  addLog(`You warm your bones. <span class="good">+${heal} HP</span>.`, 'good');
-  renderStats();
-  if (RNG.chance(10)) {
-    addLog('Shadows stir beyond the light…', 'warn');
-    const byDepth = eligibleEnemies(S.depth);
-    S.enemy = clone(RNG.pick(byDepth));
-    setEncounterStatus('Ambush!');
-    openCombat(
-      `Ambush! A <strong>${S.enemy.name}</strong> lunges from the dark! (HP ${S.enemy.hp})`
-    );
-  }
+  openEventModal({
+    title: 'Smoldering Campfire',
+    img: 'assets/campfireSVG.svg',
+    html: 'The embers still glow. Resting here could restore you… or draw attention.',
+    primaryText: 'Rest',
+    secondaryText: 'Move On',
+    onPrimary: () => {
+      const heal = RNG.int(3, 7);
+      S.hp = Math.min(S.maxHp, S.hp + heal);
+      addLog(
+        `You warm your bones. <span class="good">+${heal} HP</span>.`,
+        'good'
+      );
+      renderStats();
+      if (RNG.chance(10)) {
+        addLog('Shadows stir beyond the light…', 'warn');
+        const byDepth = eligibleEnemies(S.depth);
+        S.enemy = clone(RNG.pick(byDepth));
+        setEncounterStatus('Ambush!');
+        openCombat(
+          `Ambush! A <strong>${S.enemy.name}</strong> lunges from the dark! (HP ${S.enemy.hp})`
+        );
+      }
+    },
+    onSecondary: () => addLog('You keep your distance.'),
+  });
 }
 
 function doSecretPassage() {
-  addLog('Loose stones reveal a hidden lever…', 'good');
-  S.exitDiscovered = true;
-  // Reveal a small cross around the player to sell the fantasy of “hidden passages”
-  const R = 1;
-  for (let dy = -R; dy <= R; dy++) {
-    const y = S.pos.y + dy;
-    if (!S.map[y]) continue;
-    for (let dx = -R; dx <= R; dx++) {
-      const x = S.pos.x + dx;
-      if (S.map[y][x] !== undefined) S.map[y][x] = true;
-    }
-  }
-  addLog(
-    'You mark the route to a hidden stairwell <strong>★</strong>.',
-    'good'
-  );
-  renderMap();
+  openEventModal({
+    title: 'Hidden Lever',
+    img: 'assets/leverSVG.svg',
+    html: 'A loose stone reveals a concealed lever. It might expose new routes.',
+    primaryText: 'Pull the Lever',
+    secondaryText: 'Leave It',
+    onPrimary: () => {
+      addLog('Hidden passages grind open…', 'good');
+      S.exitDiscovered = true;
+      const R = 1;
+      for (let dy = -R; dy <= R; dy++) {
+        const y = S.pos.y + dy;
+        if (!S.map[y]) continue;
+        for (let dx = -R; dx <= R; dx++) {
+          const x = S.pos.x + dx;
+          if (S.map[y][x] !== undefined) S.map[y][x] = true;
+        }
+      }
+      addLog(
+        'You mark the route to a hidden stairwell <strong>★</strong>.',
+        'good'
+      );
+      renderMap();
+    },
+    onSecondary: () => addLog('You resist the urge to meddle.'),
+  });
 }
 
 function doOreVein() {
-  addLog('A glittering ore vein runs along the wall.');
-  const gold = RNG.int(5 + S.depth, 15 + S.depth * 2);
-  addLog(`You chip free <strong>${gold}g</strong>.`, 'good');
-  gainGold(gold);
-  if (RNG.chance(20)) {
-    const dmg = RNG.int(1, 4);
-    S.hp = Math.max(0, S.hp - dmg);
-    addLog(
-      `The ceiling sheds rubble! <span class="bad">-${dmg} HP</span>.`,
-      'bad'
-    );
-    if (S.hp <= 0) return onDeath();
-    renderStats();
-  }
+  openEventModal({
+    title: 'Glittering Ore Vein',
+    img: 'assets/oreSVG.svg',
+    html: 'Rich veins snake through the rock. Mining might pay… or cause a cave-in.',
+    primaryText: 'Mine Ore',
+    secondaryText: 'Leave It',
+    onPrimary: () => {
+      const gold = RNG.int(5 + S.depth, 15 + S.depth * 2);
+      addLog(`You chip free <strong>${gold}g</strong>.`, 'good');
+      gainGold(gold);
+      if (RNG.chance(20)) {
+        const dmg = RNG.int(1, 4);
+        S.hp = Math.max(0, S.hp - dmg);
+        addLog(
+          `The ceiling sheds rubble! <span class="bad">-${dmg} HP</span>.`,
+          'bad'
+        );
+        if (S.hp <= 0) return onDeath();
+        renderStats();
+      }
+    },
+    onSecondary: () => addLog('You move on, pockets unfilled.'),
+  });
 }
 
 function doAncientTablet() {
-  addLog('An ancient tablet is set into the floor, etched with runes.');
-  const xp = RNG.int(3, 9) + Math.floor(S.depth / 3);
-  addLog(
-    `You decipher a fragment of lore. <span class="good">+${xp} XP</span>.`,
-    'good'
-  );
-  gainXP(xp);
+  openEventModal({
+    title: 'Ancient Tablet',
+    img: 'assets/tabletSVG.svg',
+    html: 'Runes spiral in a forgotten script. Study them to glean hidden lore.',
+    primaryText: 'Study',
+    secondaryText: 'Ignore',
+    onPrimary: () => {
+      const xp = RNG.int(3, 9) + Math.floor(S.depth / 3);
+      addLog(
+        `You decipher a fragment of lore. <span class="good">+${xp} XP</span>.`,
+        'good'
+      );
+      gainXP(xp);
+    },
+    onSecondary: () =>
+      addLog('You avert your eyes from the unsettling glyphs.'),
+  });
 }
 
 function rollEncounter(opts = {}) {
