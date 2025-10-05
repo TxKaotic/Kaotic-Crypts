@@ -250,43 +250,95 @@ const ENEMIES = [
   },
 ];
 
-// Consumables
+// Consumables — unique keys, clear scaling
 const LOOT_TABLE = [
+  // --- Healing ---
   {
-    key: "potion",
-    name: "Basic Health Potion",
+    key: "potion_minor",
+    name: "Minor Health Potion",
     kind: "consumable",
     heal: 8,
-    price: 12,
+    price: 10,
+  },
+  {
+    key: "potion_small",
+    name: "Small Health Potion",
+    kind: "consumable",
+    heal: 12,
+    price: 16,
   },
   {
     key: "potion",
     name: "Health Potion",
     kind: "consumable",
     heal: 15,
-    price: 25,
+    price: 22,
   },
   {
-    key: "strong",
+    key: "potion_strong",
     name: "Strong Health Potion",
     kind: "consumable",
     heal: 25,
-    price: 40,
+    price: 38,
   },
   {
-    key: "giga",
-    name: "Giga Health Potion",
+    key: "potion_greater",
+    name: "Greater Health Potion",
     kind: "consumable",
     heal: 35,
-    price: 80,
+    price: 64,
   },
-  { key: "bomb", name: "Bomb", kind: "consumable", dmg: 10, price: 40 },
-  { key: "toxic", name: "Toxic Bomb", kind: "consumable", dmg: 15, price: 80 },
+  {
+    key: "potion_giga",
+    name: "Giga Health Potion",
+    kind: "consumable",
+    heal: 50,
+    price: 110,
+  },
+
+  // --- Explosives (more variety) ---
+  {
+    key: "bomb_crude",
+    name: "Crude Bomb",
+    kind: "consumable",
+    dmg: 8,
+    price: 22,
+  },
+  { key: "bomb", name: "Bomb", kind: "consumable", dmg: 12, price: 40 },
+  {
+    key: "bomb_shrapnel",
+    name: "Shrapnel Bomb",
+    kind: "consumable",
+    dmg: 16,
+    price: 55,
+  },
+  {
+    key: "bomb_toxic",
+    name: "Toxic Bomb",
+    kind: "consumable",
+    dmg: 20,
+    price: 75,
+  },
+  {
+    key: "bomb_frost",
+    name: "Frost Bomb",
+    kind: "consumable",
+    dmg: 24,
+    price: 90,
+  },
+  {
+    key: "bomb_incendiary",
+    name: "Incendiary Bomb",
+    kind: "consumable",
+    dmg: 28,
+    price: 100,
+  },
   { key: "tnt", name: "TNT", kind: "consumable", dmg: 75, price: 120 },
 ];
 
 // Weapon templates — higher power => rarer (weights drop with atk), unlock by depth
 const SWORDS = [
+  // --- Commons (Depth 1–2) ---
   {
     key: "rusty_dagger",
     name: "Rusty Dagger",
@@ -294,53 +346,89 @@ const SWORDS = [
     minDepth: 1,
     weight: 60,
   },
-  {
-    key: "abyssal_whip",
-    name: "Abyssal Whip",
-    atk: 8,
-    minDepth: 1,
-    weight: 8,
-  },
-  { key: "fire_poker", name: "Fire Poker", atk: 1, minDepth: 1, weight: 60 },
-  { key: "dusty_knife", name: "Dusty Knife", atk: 2, minDepth: 1, weight: 60 },
-  { key: "bone_shard", name: "Bone Shard", atk: 2, minDepth: 1, weight: 60 },
+  { key: "bent_shiv", name: "Bent Shiv", atk: 1, minDepth: 1, weight: 60 },
+  { key: "fire_poker", name: "Fire Poker", atk: 1, minDepth: 1, weight: 55 },
+  { key: "dusty_knife", name: "Dusty Knife", atk: 2, minDepth: 1, weight: 50 },
+  { key: "bone_shard", name: "Bone Shard", atk: 2, minDepth: 1, weight: 50 },
   {
     key: "makeshift_dagger",
     name: "Makeshift Dagger",
     atk: 2,
     minDepth: 1,
-    weight: 30,
+    weight: 45,
   },
-  { key: "bone_dagger", name: "Bone Dagger", atk: 3, minDepth: 3, weight: 30 },
-  { key: "short_sword", name: "Short Sword", atk: 2, minDepth: 3, weight: 35 },
-  { key: "iron_saber", name: "Iron Saber", atk: 3, minDepth: 5, weight: 25 },
+
+  // --- Uncommons (Depth 3–7) ---
+  { key: "short_sword", name: "Short Sword", atk: 3, minDepth: 3, weight: 40 },
+  { key: "bone_dagger", name: "Bone Dagger", atk: 3, minDepth: 3, weight: 35 },
+  { key: "iron_saber", name: "Iron Saber", atk: 3, minDepth: 4, weight: 30 },
+  {
+    key: "bronze_gladius",
+    name: "Bronze Gladius",
+    atk: 4,
+    minDepth: 5,
+    weight: 25,
+  },
+  {
+    key: "serrated_kopis",
+    name: "Serrated Kopis",
+    atk: 4,
+    minDepth: 6,
+    weight: 22,
+  },
   {
     key: "steel_longsword",
     name: "Steel Longsword",
     atk: 4,
-    minDepth: 8,
-    weight: 15,
+    minDepth: 7,
+    weight: 18,
   },
+
+  // --- Rares (Depth 9–13) ---
   {
     key: "knight_blade",
     name: "Knight Blade",
     atk: 5,
+    minDepth: 9,
+    weight: 12,
+  },
+  {
+    key: "storm_rapier",
+    name: "Storm Rapier",
+    atk: 5,
     minDepth: 10,
-    weight: 8,
+    weight: 10,
   },
   {
     key: "crystal_saber",
     name: "Crystal Saber",
     atk: 6,
-    minDepth: 15,
-    weight: 5,
+    minDepth: 12,
+    weight: 8,
   },
-  { key: "dragonfang", name: "Dragonfang", atk: 7, minDepth: 15, weight: 3 },
+  {
+    key: "obsidian_falchion",
+    name: "Obsidian Falchion",
+    atk: 6,
+    minDepth: 13,
+    weight: 7,
+  },
+
+  // --- Epics (Depth 14+) ---
+  { key: "dragonfang", name: "Dragonfang", atk: 7, minDepth: 14, weight: 5 },
   {
     key: "sunsteel_edge",
     name: "Sunsteel Edge",
     atk: 9,
-    minDepth: 20,
+    minDepth: 16,
+    weight: 3,
+  },
+  { key: "voidreaver", name: "Voidreaver", atk: 12, minDepth: 20, weight: 2 },
+  {
+    key: "empyrean_greatsword",
+    name: "Empyrean Greatsword",
+    atk: 15,
+    minDepth: 24,
     weight: 1,
   },
 ];
@@ -2314,7 +2402,7 @@ function onDeath() {
 }
 
 function calcRunTokens() {
-  const raw = (S.depth * 2) + (S.level * 1) + (S.gold / 50);
+  const raw = S.depth * 2 + S.level * 1 + S.gold / 50;
   return Math.max(1, Math.floor(raw * TOKEN_MULT));
 }
 
