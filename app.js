@@ -29,7 +29,7 @@ const ENEMIES = [
     key: 'rat',
     name: 'Mutated Rat',
     hp: 6,
-    atk: [1, 5],
+    atk: [1, 4],
     gold: [1, 3],
     xp: 2,
     img: './assets/ratSVG.svg',
@@ -49,7 +49,7 @@ const ENEMIES = [
     key: 'slime',
     name: 'Noxious Slime',
     hp: 10,
-    atk: [2, 8],
+    atk: [2, 6],
     gold: [3, 7],
     xp: 3,
     img: './assets/slimeSVG.svg',
@@ -59,7 +59,7 @@ const ENEMIES = [
     key: 'skeleton',
     name: 'Cracked Skull',
     hp: 14,
-    atk: [3, 10],
+    atk: [3, 8],
     gold: [5, 10],
     xp: 8,
     img: 'assets/crackedskullSVG.svg',
@@ -69,7 +69,7 @@ const ENEMIES = [
     key: 'one_eye',
     name: 'One Eye',
     hp: 20,
-    atk: [3, 18],
+    atk: [3, 12],
     gold: [5, 100],
     xp: 15,
     img: 'assets/monster1SVG.svg',
@@ -79,9 +79,9 @@ const ENEMIES = [
     key: 'mage',
     name: "Tumeken's Minion",
     hp: 25,
-    atk: [4, 15],
+    atk: [4, 12],
     gold: [6, 12],
-    xp: 10,
+    xp: 40,
     img: 'assets/wizardSVG.svg',
     minDepth: 5,
   },
@@ -91,7 +91,7 @@ const ENEMIES = [
     hp: 32,
     atk: [6, 21],
     gold: [20, 30],
-    xp: 25,
+    xp: 50,
     img: 'assets/tumekensguardianSVG.svg',
     minDepth: 8,
   },
@@ -131,27 +131,35 @@ const ENEMIES = [
 const LOOT_TABLE = [
   {
     key: 'potion',
-    name: 'Basic Potion',
+    name: 'Basic Health Potion',
     kind: 'consumable',
-    heal: 5,
+    heal: 8,
+    price: 12,
+  },
+   {
+    key: 'small_potion',
+    name: 'Small Potion',
+    kind: 'consumable',
+    heal: 12,
     price: 12,
   },
   {
-    key: 'mega',
-    name: 'Strong Potion',
+    key: 'strong_potion',
+    name: 'Strong Health Potion',
     kind: 'consumable',
     heal: 15,
     price: 25,
   },
   {
     key: 'giga',
-    name: 'Giga Potion',
+    name: 'Giga Health Potion',
     kind: 'consumable',
     heal: 20,
     price: 64,
   },
-  { key: 'bomb', name: 'Bomb', kind: 'consumable', dmg: 10, price: 40 },
+  { key: 'bomb', name: 'Bomb', kind: 'consumable', dmg: 10, price: 30 },
   { key: 'toxic', name: 'Toxic Bomb', kind: 'consumable', dmg: 15, price: 80 },
+  { key: 'toxic', name: 'Explosives', kind: 'consumable', dmg: 30, price: 180 },
 ];
 
 // Weapon templates — higher power => rarer (weights drop with atk), unlock by depth
@@ -2158,3 +2166,4 @@ document
 
 // Boot
 newGame();
+
