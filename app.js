@@ -19,7 +19,8 @@ const RNG = {
   },
 };
 const TOKEN_MULT = 1.0; // tune later (e.g., 1.25 if you want juicier rewards)
-const REST_DIMINISH_FACTOR = 0.65; // 100%, 65%, 42%, 27%, ... per rest on the same floor
+const REST_DIMINISH_FACTOR = 0.9; // try 0.90–0.95 for very gentle, 0.85 for moderate
+const REST_DECAY_STYLE = "gentle"; // "gentle" | "exp"
 // ---- Meta (stubbed) ----
 // Persisted player-wide upgrades (not items). Adjust values here to test.
 const META_KEY = "retro-dungeon-meta";
@@ -36,6 +37,15 @@ function saveMeta() {
   } catch {}
 }
 let META = loadMeta();
+
+function restDiminish(n) {
+  if (n <= 0) return 1;
+  const f = REST_DIMINISH_FACTOR;
+  // "gentle" decays with sqrt(n): 1.00, 0.90, 0.81, 0.81, 0.73, 0.73, ...
+  return REST_DECAY_STYLE === "gentle"
+    ? Math.pow(f, Math.sqrt(n))
+    : Math.pow(f, n);
+}
 
 // --- Meta currency (for lobby purchases) ---
 function ensureMetaShape() {
@@ -2349,10 +2359,11 @@ function move(dx, dy) {
 }
 
 function rest() {
-  // Diminishing returns per floor: 100%, 65%, 42%, 27%, ...
-  const diminish = Math.pow(REST_DIMINISH_FACTOR, S.restsThisFloor);
-  const base = RNG.int(1, 6);
-  const heal = Math.max(1, Math.ceil(base * getHealMult() * diminish));
+  const diminish = restDiminish(S.restsThisFloor);
+  const base = RNG.int(2, 6) * getHealMult(); // slightly tighter band plays nicer with decay
+  const extra = Math.max(0, base - 1);
+  const decayedExtra = Math.floor(extra * diminish);
+  const heal = Math.max(1, 1 + decayedExtra); // always at least 1 HP
 
   S.hp = Math.min(S.maxHp, S.hp + heal);
   S.restsThisFloor++;
@@ -2360,15 +2371,13 @@ function rest() {
   addLog(
     `You rest, patching wounds (+<span class="good">${heal} HP</span>)` +
       (S.restsThisFloor > 1
-        ? ` <small>(diminished ×${diminish.toFixed(2)} this floor)</small>`
+        ? ` <small>(${diminish.toFixed(2)}% this floor)</small>`
         : ""),
     "good"
   );
 
-  // Keep your existing light risk without increasing spawns overall
   if (RNG.chance(15)) {
     addLog("You hear something behind you!", "warn");
-    // If you prefer to avoid events during a rest, keep forbidEvents
     rollEncounter({ forbidEvents: true });
   }
 
@@ -2685,17 +2694,27 @@ function loadGame() {
 // Modals & Wiring
 // ------------------------------
 const combatModal = document.getElementById("combatModal");
+// Disable default Esc-close on the combat dialog
+combatModal?.addEventListener("cancel", (e) => e.preventDefault());
 // app.js — REPLACE the whole openCombat() function
 function openCombat(openingLine) {
   const log = $("#combatLog");
   log.innerHTML = "";
+
+  // 🔒 Hide/disable the close button during combat
+  const closeBtn = document.getElementById("combatClose");
+  if (closeBtn) {
+    closeBtn.disabled = true;
+    closeBtn.style.display = "none";
+    closeBtn.setAttribute("aria-hidden", "true");
+    closeBtn.title = "You can't close this while an enemy is present.";
+  }
 
   // Show portrait if the enemy defines an image
   if (S.enemy && S.enemy.img) {
     const img = document.createElement("img");
     img.src = S.enemy.img;
     img.alt = S.enemy.name || S.enemy.key;
-    // minimal inline styling so you don't need CSS changes
     img.style.maxWidth = "60%";
     img.style.maxHeight = "100px";
     img.style.display = "block";
@@ -2707,9 +2726,7 @@ function openCombat(openingLine) {
   }
 
   // Make sure the HP pill shows the starting HP right away
-  if (S.enemy) {
-    $("#combatEnemyHp").textContent = `HP ${S.enemy.hp}`;
-  }
+  if (S.enemy) $("#combatEnemyHp").textContent = `HP ${S.enemy.hp}`;
 
   addCombatLog(openingLine, "warn");
   try {
