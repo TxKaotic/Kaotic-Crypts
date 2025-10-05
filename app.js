@@ -2314,10 +2314,8 @@ function onDeath() {
 }
 
 function calcRunTokens() {
-  // Simple, readable formula; tweak as you like:
-  // depth is king; a bit from level; tiny from gold
-  const t = Math.floor(S.depth * 2 + S.level * 1 + S.gold / 50);
-  return Math.max(1, t);
+  const raw = (S.depth * 2) + (S.level * 1) + (S.gold / 50);
+  return Math.max(1, Math.floor(raw * TOKEN_MULT));
 }
 
 function showDeathScreen() {
