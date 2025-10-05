@@ -22,8 +22,8 @@ const RNG = {
 
 // ---- Drop rate knobs (percent chances) ----
 const DROP_RATES = {
-  weapon: 12, // swords: ~12% after a kill (was 20%)
-  shield: 7, // shields: ~7% after a kill (was 15%)
+  weapon: 7, // swords: ~12% after a kill (was 20%)
+  shield: 12, // shields: ~7% after a kill (was 15%)
 };
 
 const ENEMIES = [
@@ -1776,3 +1776,4 @@ document
 
 // Boot
 newGame();
+
