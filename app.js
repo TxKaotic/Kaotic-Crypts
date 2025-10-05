@@ -19,6 +19,7 @@ const RNG = {
   },
 };
 const TOKEN_MULT = 1.0; // tune later (e.g., 1.25 if you want juicier rewards)
+const REST_DIMINISH_FACTOR = 0.65; // 100%, 65%, 42%, 27%, ... per rest on the same floor
 // ---- Meta (stubbed) ----
 // Persisted player-wide upgrades (not items). Adjust values here to test.
 const META_KEY = "retro-dungeon-meta";
@@ -225,7 +226,7 @@ const ENEMIES = [
     atk: [1, 25],
     gold: [100, 300],
     xp: 250,
-    img: "assets/temekensshadowSVG.svg",
+    img: "assets/tumekensshadowSVG.svg", // fixed filename
     minDepth: 9,
   },
   {
@@ -417,10 +418,10 @@ const SWORDS = [
   // --- Epics (Depth 14+) ---
   { key: "dragonfang", name: "Dragonfang", atk: 7, minDepth: 14, weight: 5 },
   {
-    key: "empyrean_greatsword",
-    name: "Empyrean Greatsword",
+    key: "empyrean_sword",
+    name: "Empyrean Sword",
     atk: 8,
-    minDepth: 1,
+    minDepth: 14, // moved from 1 to appropriate tier
     weight: 3,
   },
   {
@@ -626,6 +627,7 @@ const initialState = () => ({
   traderCooldown: 0,
   // Explorer (Scout Pulse) per-floor charges
   scoutCharges: 0,
+  restsThisFloor: 0,
 });
 
 let S = initialState();
@@ -675,6 +677,7 @@ function sanitizeState() {
     S.equipped = { weapon: null, shield: null };
   if (!("weapon" in S.equipped)) S.equipped.weapon = null;
   if (!("shield" in S.equipped)) S.equipped.shield = null; // ← ensure shield
+  if (typeof S.restsThisFloor !== "number") S.restsThisFloor = 0;
 
   if (typeof S.traderCooldown !== "number") S.traderCooldown = 0;
   if (typeof S.scoutCharges !== "number") S.scoutCharges = 0;
@@ -723,8 +726,10 @@ function pickUniqueWeighted(pool, count, weightKey = "weight") {
   for (let i = 0; i < count && available.length > 0; i++) {
     const choice = weightedPick(available, weightKey);
     picks.push(choice);
-    const idx = available.findIndex((t) => t.key === choice.key);
-    if (idx >= 0) available.splice(idx, 1);
+    // remove ALL items sharing the same key
+    for (let j = available.length - 1; j >= 0; j--) {
+      if (available[j].key === choice.key) available.splice(j, 1);
+    }
   }
   return picks;
 }
@@ -732,9 +737,9 @@ function pickUniqueWeighted(pool, count, weightKey = "weight") {
 // Glimmer effect
 function flashGlimmer() {
   const fx = document.getElementById("fx");
-  fx.classList.remove("glimmer");
-  void fx.offsetWidth; // restart animation
-  fx.classList.add("glimmer");
+  fx?.classList.remove("glimmer");
+  void fx?.offsetWidth; // restart animation
+  fx?.classList.add("glimmer");
 }
 
 // ------------------------------
@@ -1068,6 +1073,7 @@ function descend() {
   S.map = Array.from({ length: S.mapSize }, () => Array(S.mapSize).fill(false));
   S.pos = { x: 0, y: 0 };
   S.map[S.pos.y][S.pos.x] = true;
+  S.restsThisFloor = 0;
   generateExit();
   // Refresh Explorer charges per floor
   S.scoutCharges = getScoutPerFloor();
@@ -1151,6 +1157,7 @@ function priceForShield(def, rollChance, source = "drop") {
 function openInventoryModal() {
   const m = document.getElementById("invModal");
   const list = document.getElementById("invList");
+  if (!m || !list) return;
   list.innerHTML = "";
   if (!S.inventory.length) list.innerHTML = "<p>(Inventory empty)</p>";
 
@@ -1374,7 +1381,7 @@ const ENEMY_BIAS = {
 
 function pickEnemyBiased(depth) {
   const byDepth = eligibleEnemies(depth);
-  const byScale = byDepth.filter((e) => e.hp <= 10 + depth * 4); // your existing safety gate
+  const byScale = byDepth.filter((e) => e.hp <= 10 + depth * 4); // safety gate
   const pool = byScale.length ? byScale : byDepth;
 
   const depthBias = Math.min(ENEMY_BIAS.cap, ENEMY_BIAS.perDepth * depth);
@@ -1953,9 +1960,6 @@ function rollEncounter(opts = {}) {
 
   // --- Enemy (35%) ---
   if (r <= 35) {
-    const byDepth = eligibleEnemies(S.depth);
-    const byScale = byDepth.filter((e) => e.hp <= 10 + S.depth * 4);
-    const pickFrom = byScale.length ? byScale : byDepth;
     S.enemy = pickEnemyBiased(S.depth);
     setEncounterStatus("Enemy!");
     openCombat(
@@ -2227,6 +2231,8 @@ function renderShopUI(title, offers, weaponsForSale) {
 
   // SELL (50% of value)
   if (!S.inventory.length) sellList.innerHTML = "<p>(Nothing to sell)</p>";
+
+  // Consumables
   S.inventory.forEach((it) => {
     const meta = LOOT_TABLE.find((x) => x.key === it.key);
     if (meta) {
@@ -2248,6 +2254,7 @@ function renderShopUI(title, offers, weaponsForSale) {
     }
   });
 
+  // Weapons
   S.inventory
     .filter((x) => x.key === "weapon")
     .forEach((w) => {
@@ -2269,35 +2276,38 @@ function renderShopUI(title, offers, weaponsForSale) {
         }
       });
       sellActions.appendChild(b);
+    });
 
-      S.inventory
-        .filter((x) => x.key === "shield")
-        .forEach((sh) => {
-          const price = Math.max(
-            1,
-            Math.floor(
-              (sh.price || priceForShield(sh.def, sh.rollChance, "drop")) * 0.5
-            )
-          );
-          const p = document.createElement("p");
-          p.innerHTML = `<strong>🛡️ ${sh.name}</strong> <small>${sh.def} DEF • ${sh.rollChance}% • ${sh.rarity}</small> — ${price}g`;
-          sellList.appendChild(p);
-          const b = document.createElement("button");
-          b.textContent = `Sell ${sh.name}`;
-          b.addEventListener("click", () => {
-            if (removeShieldById(sh.id)) {
-              S.gold += price;
-              addLog(`Sold ${sh.name} for ${price}g.`, "good");
-              renderStats();
-              renderShopUI(title, offers, weaponsForSale);
-            }
-          });
-          sellActions.appendChild(b);
-        });
+  // Shields (moved outside weapon loop to avoid duplication)
+  S.inventory
+    .filter((x) => x.key === "shield")
+    .forEach((sh) => {
+      const price = Math.max(
+        1,
+        Math.floor(
+          (sh.price || priceForShield(sh.def, sh.rollChance, "drop")) * 0.5
+        )
+      );
+      const p = document.createElement("p");
+      p.innerHTML = `<strong>🛡️ ${sh.name}</strong> <small>${sh.def} DEF • ${sh.rollChance}% • ${sh.rarity}</small> — ${price}g`;
+      sellList.appendChild(p);
+      const b = document.createElement("button");
+      b.textContent = `Sell ${sh.name}`;
+      b.addEventListener("click", () => {
+        if (removeShieldById(sh.id)) {
+          S.gold += price;
+          addLog(`Sold ${sh.name} for ${price}g.`, "good");
+          renderStats();
+          renderShopUI(title, offers, weaponsForSale);
+        }
+      });
+      sellActions.appendChild(b);
     });
 
   renderStats();
-  shopModal.showModal();
+  try {
+    shopModal?.showModal();
+  } catch {}
 }
 
 // ------------------------------
@@ -2339,17 +2349,29 @@ function move(dx, dy) {
 }
 
 function rest() {
-  const heal = Math.ceil(RNG.int(1, 4) * getHealMult());
+  // Diminishing returns per floor: 100%, 65%, 42%, 27%, ...
+  const diminish = Math.pow(REST_DIMINISH_FACTOR, S.restsThisFloor);
+  const base = RNG.int(1, 6);
+  const heal = Math.max(1, Math.ceil(base * getHealMult() * diminish));
+
   S.hp = Math.min(S.maxHp, S.hp + heal);
+  S.restsThisFloor++;
+
   addLog(
-    `You rest, patching wounds (+<span class="good">${heal} HP</span>). <em>Risk: you might be ambushed.</em>`,
+    `You rest, patching wounds (+<span class="good">${heal} HP</span>)` +
+      (S.restsThisFloor > 1
+        ? ` <small>(diminished ×${diminish.toFixed(2)} this floor)</small>`
+        : ""),
     "good"
   );
+
+  // Keep your existing light risk without increasing spawns overall
   if (RNG.chance(15)) {
     addLog("You hear something behind you!", "warn");
-    // Block loot AND modal events while resting
-    rollEncounter({ forbidLoot: true, forbidEvents: true });
+    // If you prefer to avoid events during a rest, keep forbidEvents
+    rollEncounter({ forbidEvents: true });
   }
+
   renderStats();
 }
 
@@ -2690,14 +2712,16 @@ function openCombat(openingLine) {
   }
 
   addCombatLog(openingLine, "warn");
-  combatModal.showModal();
+  try {
+    combatModal?.showModal();
+  } catch {}
 }
-document.getElementById("invModal").addEventListener("close", () => {
+document.getElementById("invModal")?.addEventListener("close", () => {
   // If the player is still in combat, bring the combat modal back to the top layer.
-  if (resumeCombatAfterInv && S.enemy && !combatModal.open) {
+  if (resumeCombatAfterInv && S.enemy && !combatModal?.open) {
     setTimeout(() => {
       try {
-        combatModal.showModal();
+        combatModal?.showModal();
       } catch {}
     }, 0);
   }
@@ -2763,6 +2787,8 @@ document.getElementById("loadGame")?.addEventListener("click", loadGame);
 
 document.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
+
+  // If in combat, handle combat hotkeys only
   if (document.getElementById("combatModal")?.open) {
     if (k === "a") document.getElementById("combatAttack")?.click();
     else if (k === "f") document.getElementById("combatFlee")?.click();
@@ -2770,6 +2796,15 @@ document.addEventListener("keydown", (e) => {
     else if (k === "escape") document.getElementById("combatClose")?.click();
     return;
   }
+
+  // --- Shortcuts with modifiers (handle first) ---
+  if ((e.ctrlKey || e.metaKey) && k === "s") {
+    e.preventDefault();
+    document.getElementById("saveGame")?.click();
+    return;
+  }
+
+  // --- Movement / actions ---
   if (k === "w" || e.key === "ArrowUp")
     document.getElementById("dirUp")?.click();
   else if (k === "s" || e.key === "ArrowDown")
@@ -2785,17 +2820,14 @@ document.addEventListener("keydown", (e) => {
   } else if (k === "i") document.getElementById("actInventory")?.click();
   else if (k === "x") useScoutPulse(); // Hotkey for Explorer bonus
   else if (k === "n") document.getElementById("newGame")?.click();
-  else if (k === "s") document.getElementById("saveGame")?.click();
   else if (k === "l") document.getElementById("loadGame")?.click();
 });
 
 const about = document.getElementById("about");
 document
   .getElementById("aboutBtn")
-  ?.addEventListener("click", () => about.showModal());
+  ?.addEventListener("click", () => about?.showModal());
 
 // Boot
 // Boot into Lobby
 openLobby();
-
-
