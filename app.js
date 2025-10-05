@@ -286,6 +286,13 @@ const SWORDS = [
     minDepth: 1,
     weight: 60,
   },
+  {
+    key: "abyssal_whip",
+    name: "Abyssal Whip",
+    atk: 8,
+    minDepth: 1,
+    weight: 8,
+  },
   { key: "fire_poker", name: "Fire Poker", atk: 1, minDepth: 1, weight: 60 },
   { key: "dusty_knife", name: "Dusty Knife", atk: 2, minDepth: 1, weight: 60 },
   { key: "bone_shard", name: "Bone Shard", atk: 2, minDepth: 1, weight: 60 },
@@ -1964,8 +1971,9 @@ function playerAttack() {
       closeCombat();
 
       if (RNG.chance(5)) {
-        addLog("<em>You feel the dungeon pull you deeper within...</em>");
-        descend(); // ensures map/reset like taking stairs
+        addLog(
+          "<em>You feel the dungeon pull you deeper within...But Cody's scared so we will stay here...</em>"
+        );
       }
       renderStats();
     } else {
