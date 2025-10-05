@@ -1794,7 +1794,7 @@ function rollEncounter(opts = {}) {
   const { forbidLoot = false, forbidEvents = false } = opts;
   const r = RNG.int(1, 100);
 
-  if (r <= 40) {
+  if (r <= 60) {
     const byDepth = eligibleEnemies(S.depth);
     const byScale = byDepth.filter((e) => e.hp <= 10 + S.depth * 4);
     const pickFrom = byScale.length ? byScale : byDepth;
@@ -1803,7 +1803,7 @@ function rollEncounter(opts = {}) {
     openCombat(
       `A <strong>${S.enemy.name}</strong> emerges from the dark! (HP ${S.enemy.hp})`
     );
-  } else if (r <= 52) {
+  } else if (r <= 65) {
     // Loot (12)
     if (forbidLoot) {
       addLog('You keep still; nothing turns up while you rest.');
@@ -1812,7 +1812,7 @@ function rollEncounter(opts = {}) {
       addItem(loot.key, 1);
       addLog(`You find <strong>${loot.name}</strong>.`, 'good');
     }
-  } else if (r <= 62) {
+  } else if (r <= 70) {
     // Trap (+10)
     const dmg = RNG.int(1, 4 + Math.floor(S.depth / 2));
     S.hp = Math.max(0, S.hp - dmg);
