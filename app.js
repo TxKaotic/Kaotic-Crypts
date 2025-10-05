@@ -417,6 +417,13 @@ const SWORDS = [
   // --- Epics (Depth 14+) ---
   { key: "dragonfang", name: "Dragonfang", atk: 7, minDepth: 14, weight: 5 },
   {
+    key: "empyrean_greatsword",
+    name: "Empyrean Greatsword",
+    atk: 8,
+    minDepth: 1,
+    weight: 3,
+  },
+  {
     key: "sunsteel_edge",
     name: "Sunsteel Edge",
     atk: 9,
