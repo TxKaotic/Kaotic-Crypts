@@ -2191,7 +2191,7 @@ function rest() {
     `You rest, patching wounds (+<span class="good">${heal} HP</span>). <em>Risk: you might be ambushed.</em>`,
     'good'
   );
-  if (RNG.chance(10)) {
+  if (RNG.chance(5)) {
     addLog('You hear something behind you!', 'warn');
     // Block loot AND modal events while resting
     rollEncounter({ forbidLoot: true, forbidEvents: true });
@@ -2645,3 +2645,4 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
+
