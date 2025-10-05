@@ -1192,31 +1192,37 @@ function openInventoryModal() {
 function useSpecificItem(key) {
   const meta = LOOT_TABLE.find((l) => l.key === key);
   if (!meta) return;
-  if (key === "potion" || key === "mega" || key === "giga") {
+
+  // --- Healers: any item with a numeric "heal"
+  if (typeof meta.heal === "number") {
     if (removeItem(key, 1)) {
-      const heal = Math.ceil((meta.heal || 0) * getHealMult());
+      const heal = Math.ceil(meta.heal * getHealMult());
       S.hp = Math.min(S.maxHp, S.hp + heal);
       const msg = `You drink ${meta.name} and restore <span class="good">${heal} HP</span>.`;
       addLog(msg, "good");
-      if (document.getElementById("combatModal").open)
+      if (document.getElementById("combatModal")?.open)
         addCombatLog(msg, "good");
       renderStats();
       if (S.enemy) enemyAttack();
     }
-  } else if (key === "bomb" || key === "toxic") {
+    return;
+  }
+
+  // --- Explosives: any item with a numeric "dmg"
+  if (typeof meta.dmg === "number") {
     if (!S.enemy) {
-      addLog("You consider lighting a bomb…but decide against it.");
+      addLog("You consider lighting it… but decide against it.");
       return;
     }
-    if (key === "bomb" && removeItem("bomb", 1)) {
+    if (removeItem(key, 1)) {
       const dmg = meta.dmg;
       S.enemy.hp -= dmg;
-      addCombatLog(`You hurl a bomb for <strong>${dmg}</strong>!`);
+      addCombatLog(`You use ${meta.name} for <strong>${dmg}</strong> damage!`);
       if (S.enemy.hp <= 0) {
         const gold = RNG.int(...S.enemy.gold);
         const xp = S.enemy.xp;
         addCombatLog(
-          `The ${S.enemy.name} is blasted apart! <span class="good">${gold}g</span> scooped.`,
+          `The ${S.enemy.name} is obliterated! <span class="good">${gold}g</span> scooped.`,
           "good"
         );
         gainGold(gold);
@@ -1227,27 +1233,12 @@ function useSpecificItem(key) {
       } else {
         enemyAttack();
       }
-    } else if (key === "toxic" && removeItem("toxic", 1)) {
-      const dmg = meta.dmg;
-      S.enemy.hp -= dmg;
-      addCombatLog(`You hurl a toxic bomb for <strong>${dmg}</strong>!`);
-      if (S.enemy.hp <= 0) {
-        const gold = RNG.int(...S.enemy.gold);
-        const xp = S.enemy.xp;
-        addCombatLog(
-          `The ${S.enemy.name} is blasted apart! <span class="good">${gold}g</span> scooped.`,
-          "good"
-        );
-        gainGold(gold);
-        gainXP(xp);
-        S.enemy = null;
-        setEncounterStatus("Idle");
-        closeCombat();
-      } else {
-        enemyAttack();
-      }
+      renderStats();
     }
+    return;
   }
+
+  addLog(`${meta.name} doesn't seem usable right now.`);
 }
 
 // ------------------------------
