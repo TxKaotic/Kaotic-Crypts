@@ -2339,13 +2339,13 @@ function move(dx, dy) {
 }
 
 function rest() {
-  const heal = Math.ceil(RNG.int(1, 6) * getHealMult());
+  const heal = Math.ceil(RNG.int(1, 4) * getHealMult());
   S.hp = Math.min(S.maxHp, S.hp + heal);
   addLog(
     `You rest, patching wounds (+<span class="good">${heal} HP</span>). <em>Risk: you might be ambushed.</em>`,
     "good"
   );
-  if (RNG.chance(10)) {
+  if (RNG.chance(15)) {
     addLog("You hear something behind you!", "warn");
     // Block loot AND modal events while resting
     rollEncounter({ forbidLoot: true, forbidEvents: true });
@@ -2797,3 +2797,4 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
+
