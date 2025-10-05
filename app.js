@@ -1789,12 +1789,18 @@ function doAncientTablet() {
 }
 
 function rollEncounter(opts = {}) {
-  // Enemy 40, Loot 12, Trap 10, Chest 9, Fountain 7, Campfire 6,
-  // Ore Vein 5, Secret 3, Tablet 3, Weapon Trader 2, Trader 1, Empty 2
-  const { forbidLoot = false, forbidEvents = false } = opts;
+  // Target distribution (out of 100):
+  // 1–35   => Enemy (35%)
+  // 36–55  => Trap (20%)
+  // 56–65  => Event bundle: campfire/fountain/ore/lever/chest/tablet (10% total)
+  // 66–75  => Wandering Trader (10%)  [blocked by traderCooldown => becomes empty]
+  // 76–80  => Weapon Trader (5%)      [blocked by traderCooldown => becomes empty]
+  // 81–100 => Empty (20%)
+  const { forbidEvents = false } = opts;
   const r = RNG.int(1, 100);
 
-  if (r <= 60) {
+  // --- Enemy (35%) ---
+  if (r <= 35) {
     const byDepth = eligibleEnemies(S.depth);
     const byScale = byDepth.filter((e) => e.hp <= 10 + S.depth * 4);
     const pickFrom = byScale.length ? byScale : byDepth;
@@ -1803,17 +1809,11 @@ function rollEncounter(opts = {}) {
     openCombat(
       `A <strong>${S.enemy.name}</strong> emerges from the dark! (HP ${S.enemy.hp})`
     );
-  } else if (r <= 65) {
-    // Loot (12)
-    if (forbidLoot) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      const loot = RNG.pick(LOOT_TABLE);
-      addItem(loot.key, 1);
-      addLog(`You find <strong>${loot.name}</strong>.`, 'good');
-    }
-  } else if (r <= 70) {
-    // Trap (+10)
+    return;
+  }
+
+  // --- Trap (20%) ---
+  if (r <= 55) {
     const dmg = RNG.int(1, 4 + Math.floor(S.depth / 2));
     S.hp = Math.max(0, S.hp - dmg);
     addLog(
@@ -1822,59 +1822,51 @@ function rollEncounter(opts = {}) {
     );
     if (S.hp <= 0) return onDeath();
     renderStats();
-  } else if (r <= 71) {
-    // Chest (+9)
-    if (forbidEvents) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      doTreasureChest();
-    }
-  } else if (r <= 78) {
-    // Fountain (+7)
-    if (forbidEvents) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      doFountain();
-    }
-  } else if (r <= 84) {
-    // Campfire (+6)
-    if (forbidEvents) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      doCampfire();
-    }
-  } else if (r <= 89) {
-    // Ore Vein (+5)
-    if (forbidEvents) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      doOreVein();
-    }
-  } else if (r <= 92) {
-    // Secret Passage (+3)
-    if (forbidEvents) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      doSecretPassage();
-    }
-  } else if (r <= 95) {
-    // Ancient Tablet (+3)
-    if (forbidEvents) {
-      addLog('You keep still; nothing turns up while you rest.');
-    } else {
-      doAncientTablet();
-    }
-  } else if (r <= 97 && S.traderCooldown <= 0) {
-    // Weapon Trader (+2) — still allowed while resting (not an "event" modal)
-    openWeaponShop();
-    S.traderCooldown = 8;
-  } else if (r <= 98 && S.traderCooldown <= 0) {
-    // General Trader (+1) — still allowed while resting
-    openShop();
-    S.traderCooldown = 8;
-  } else {
-    addLog('This room appears empty.');
+    return;
   }
+
+  // --- Event bundle (10%) ---
+  if (r <= 65) {
+    if (forbidEvents) {
+      addLog('You keep still; nothing turns up while you rest.');
+      return;
+    }
+    const eventFns = [
+      doCampfire,
+      doFountain,
+      doOreVein,
+      doSecretPassage,
+      doTreasureChest,
+      doAncientTablet,
+    ];
+    RNG.pick(eventFns)();
+    return;
+  }
+
+  // --- Wandering Trader (10%) ---
+  if (r <= 75) {
+    if (S.traderCooldown <= 0) {
+      openShop();
+      S.traderCooldown = 8;
+    } else {
+      addLog('This room appears empty.');
+    }
+    return;
+  }
+
+  // --- Weapon Trader (5%) ---
+  if (r <= 80) {
+    if (S.traderCooldown <= 0) {
+      openWeaponShop();
+      S.traderCooldown = 8;
+    } else {
+      addLog('This room appears empty.');
+    }
+    return;
+  }
+
+  // --- Empty (20%) ---
+  addLog('This room appears empty.');
 }
 
 function enemyAttack() {
@@ -2191,7 +2183,7 @@ function rest() {
     `You rest, patching wounds (+<span class="good">${heal} HP</span>). <em>Risk: you might be ambushed.</em>`,
     'good'
   );
-  if (RNG.chance(5)) {
+  if (RNG.chance(10)) {
     addLog('You hear something behind you!', 'warn');
     // Block loot AND modal events while resting
     rollEncounter({ forbidLoot: true, forbidEvents: true });
@@ -2645,4 +2637,3 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
-
