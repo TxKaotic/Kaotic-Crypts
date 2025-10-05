@@ -22,8 +22,8 @@ const RNG = {
 
 // ---- Drop rate knobs (percent chances) ----
 const DROP_RATES = {
-  weapon: 7, // swords: ~12% after a kill (was 20%)
-  shield: 12, // shields: ~7% after a kill (was 15%)
+  weapon: 12, // swords: ~12% after a kill (was 20%)
+  shield: 7, // shields: ~7% after a kill (was 15%)
 };
 
 const ENEMIES = [
@@ -68,9 +68,19 @@ const ENEMIES = [
     minDepth: 3,
   },
   {
+    key: 'one_eye',
+    name: 'One Eye',
+    hp: 20,
+    atk: [3, 18],
+    gold: [5, 100],
+    xp: 15,
+    img: 'assets/monster1SVG.svg',
+    minDepth: 3,
+  },
+  {
     key: 'mage',
     name: "Tumeken's Minion",
-    hp: 18,
+    hp: 25,
     atk: [4, 15],
     gold: [6, 12],
     xp: 10,
@@ -157,7 +167,7 @@ const SWORDS = [
   },
   {
     key: 'fire_poker',
-    name: 'Fire_poker',
+    name: 'Fire Poker',
     atk: 1,
     minDepth: 1,
     weight: 60,
@@ -1048,24 +1058,153 @@ function gainGold(g) {
 // ------------------------------
 // Encounters & Combat
 // ------------------------------
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function doTreasureChest() {
+  addLog('You find an old chest banded with iron.');
+  const roll = RNG.int(1, 100);
+  if (roll <= 15) {
+    // Mimic!
+    const byDepth = eligibleEnemies(S.depth);
+    const meta = RNG.pick(byDepth);
+    S.enemy = clone(meta);
+    setEncounterStatus('Mimic!');
+    openCombat(
+      `The chest sprouts fangs! It's a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
+    );
+    return;
+  }
+  if (roll <= 80) {
+    const gold = RNG.int(10 + S.depth, 25 + S.depth * 2);
+    addLog(`Inside: <strong>${gold}g</strong>.`, 'good');
+    gainGold(gold);
+  } else {
+    const loot = RNG.pick(LOOT_TABLE);
+    addItem(loot.key, 1);
+    addLog(`Inside: <strong>${loot.name}</strong>.`, 'good');
+  }
+}
+
+function doFountain() {
+  addLog('You discover a faintly glowing fountain set in the wall.');
+  if (!confirm('Drink from the fountain?')) {
+    addLog('You decide against it and move on.');
+    return;
+  }
+  const roll = RNG.int(1, 100);
+  if (roll <= 40) {
+    const heal = 8 + Math.floor(S.depth / 3);
+    S.hp = Math.min(S.maxHp, S.hp + heal);
+    addLog(
+      `The water is rejuvenating. <span class="good">+${heal} HP</span>.`,
+      'good'
+    );
+  } else if (roll <= 70) {
+    const heal = 3 + Math.floor(S.depth / 5);
+    S.hp = Math.min(S.maxHp, S.hp + heal);
+    addLog(
+      `Cool and refreshing. <span class="good">+${heal} HP</span>.`,
+      'good'
+    );
+  } else if (roll <= 90) {
+    addLog('Nothing happens. Perhaps its magic is spent.');
+  } else {
+    const dmg = RNG.int(2, 5);
+    S.hp = Math.max(0, S.hp - dmg);
+    addLog(`Ugh—tainted! <span class="bad">-${dmg} HP</span>.`, 'bad');
+    if (S.hp <= 0) return onDeath();
+  }
+  renderStats();
+}
+
+function doCampfire() {
+  addLog('You come upon a smoldering campfire.');
+  if (!confirm('Rest by the fire?')) {
+    addLog('You keep your distance.');
+    return;
+  }
+  const heal = RNG.int(3, 7);
+  S.hp = Math.min(S.maxHp, S.hp + heal);
+  addLog(`You warm your bones. <span class="good">+${heal} HP</span>.`, 'good');
+  renderStats();
+  if (RNG.chance(10)) {
+    addLog('Shadows stir beyond the light…', 'warn');
+    const byDepth = eligibleEnemies(S.depth);
+    S.enemy = clone(RNG.pick(byDepth));
+    setEncounterStatus('Ambush!');
+    openCombat(
+      `Ambush! A <strong>${S.enemy.name}</strong> lunges from the dark! (HP ${S.enemy.hp})`
+    );
+  }
+}
+
+function doSecretPassage() {
+  addLog('Loose stones reveal a hidden lever…', 'good');
+  S.exitDiscovered = true;
+  // Reveal a small cross around the player to sell the fantasy of “hidden passages”
+  const R = 1;
+  for (let dy = -R; dy <= R; dy++) {
+    const y = S.pos.y + dy;
+    if (!S.map[y]) continue;
+    for (let dx = -R; dx <= R; dx++) {
+      const x = S.pos.x + dx;
+      if (S.map[y][x] !== undefined) S.map[y][x] = true;
+    }
+  }
+  addLog(
+    'You mark the route to a hidden stairwell <strong>★</strong>.',
+    'good'
+  );
+  renderMap();
+}
+
+function doOreVein() {
+  addLog('A glittering ore vein runs along the wall.');
+  const gold = RNG.int(5 + S.depth, 15 + S.depth * 2);
+  addLog(`You chip free <strong>${gold}g</strong>.`, 'good');
+  gainGold(gold);
+  if (RNG.chance(20)) {
+    const dmg = RNG.int(1, 4);
+    S.hp = Math.max(0, S.hp - dmg);
+    addLog(
+      `The ceiling sheds rubble! <span class="bad">-${dmg} HP</span>.`,
+      'bad'
+    );
+    if (S.hp <= 0) return onDeath();
+    renderStats();
+  }
+}
+
+function doAncientTablet() {
+  addLog('An ancient tablet is set into the floor, etched with runes.');
+  const xp = RNG.int(3, 9) + Math.floor(S.depth / 3);
+  addLog(
+    `You decipher a fragment of lore. <span class="good">+${xp} XP</span>.`,
+    'good'
+  );
+  gainXP(xp);
+}
+
 function rollEncounter(opts = {}) {
-  // enemy 45%, loot 15%, trap 12%, weapon trader 3%, general trader 2%, empty 23%
+  // New distribution:
+  // Enemy 40, Loot 12, Trap 10, Chest 9, Fountain 7, Campfire 6,
+  // Ore Vein 5, Secret 3, Tablet 3, Weapon Trader 2, Trader 1, Empty 2
   const { forbidLoot = false } = opts;
   const r = RNG.int(1, 100);
 
-  if (r <= 45) {
-    // Respect depth gate first, then apply your scaling cap as a soft filter
+  if (r <= 40) {
     const byDepth = eligibleEnemies(S.depth);
     const byScale = byDepth.filter((e) => e.hp <= 10 + S.depth * 4);
     const pickFrom = byScale.length ? byScale : byDepth;
-
-    const meta = RNG.pick(pickFrom);
-    S.enemy = JSON.parse(JSON.stringify(meta));
+    S.enemy = clone(RNG.pick(pickFrom));
     setEncounterStatus('Enemy!');
     openCombat(
       `A <strong>${S.enemy.name}</strong> emerges from the dark! (HP ${S.enemy.hp})`
     );
-  } else if (r <= 60) {
+  } else if (r <= 52) {
+    // 12
     if (forbidLoot) {
       addLog('You keep still; nothing turns up while you rest.');
     } else {
@@ -1073,7 +1212,8 @@ function rollEncounter(opts = {}) {
       addItem(loot.key, 1);
       addLog(`You find <strong>${loot.name}</strong>.`, 'good');
     }
-  } else if (r <= 72) {
+  } else if (r <= 62) {
+    // +10
     const dmg = RNG.int(1, 4 + Math.floor(S.depth / 2));
     S.hp = Math.max(0, S.hp - dmg);
     addLog(
@@ -1082,11 +1222,31 @@ function rollEncounter(opts = {}) {
     );
     if (S.hp <= 0) return onDeath();
     renderStats();
-  } else if (r <= 75 && S.traderCooldown <= 0) {
+  } else if (r <= 71) {
+    // +9
+    doTreasureChest();
+  } else if (r <= 78) {
+    // +7
+    doFountain();
+  } else if (r <= 84) {
+    // +6
+    doCampfire();
+  } else if (r <= 89) {
+    // +5
+    doOreVein();
+  } else if (r <= 92) {
+    // +3
+    doSecretPassage();
+  } else if (r <= 95) {
+    // +3
+    doAncientTablet();
+  } else if (r <= 97 && S.traderCooldown <= 0) {
+    // +2
     openWeaponShop();
     S.traderCooldown = 8;
-  } else if (r <= 77 && S.traderCooldown <= 0) {
-    openShop(); // general trader
+  } else if (r <= 98 && S.traderCooldown <= 0) {
+    // +1
+    openShop();
     S.traderCooldown = 8;
   } else {
     addLog('This room appears empty.');
@@ -1776,4 +1936,3 @@ document
 
 // Boot
 newGame();
-
