@@ -1357,6 +1357,37 @@ function maybeDropShield() {
 // ------------------------------
 // Progression
 // ------------------------------
+// Make higher-minDepth enemies slightly more common as depth increases
+const ENEMY_BIAS = {
+  perDepth: 0.02, // +2% weighting per depth
+  cap: 0.6, // cap the extra weighting at +60%
+  curve: 1.2, // >1 = slightly favors very new unlocks over mid-tier
+  newUnlockBonus: 0.35, // flat bump for enemies unlocked at (depth-1 or depth)
+};
+
+function pickEnemyBiased(depth) {
+  const byDepth = eligibleEnemies(depth);
+  const byScale = byDepth.filter((e) => e.hp <= 10 + depth * 4); // your existing safety gate
+  const pool = byScale.length ? byScale : byDepth;
+
+  const depthBias = Math.min(ENEMY_BIAS.cap, ENEMY_BIAS.perDepth * depth);
+
+  // Weight grows as enemy.minDepth approaches current depth
+  const weightedPool = pool.map((e) => {
+    const rel = Math.max(
+      0,
+      Math.min(1, (e.minDepth ?? 1) / Math.max(1, depth))
+    );
+    let w = 1 + depthBias * Math.pow(rel, ENEMY_BIAS.curve); // base ≈1, up to 1+depthBias
+    if ((e.minDepth ?? 1) >= depth - 1) w += ENEMY_BIAS.newUnlockBonus; // little “recent unlock” bump
+    return { ...e, weight: w };
+  });
+
+  const choice = weightedPick(weightedPool, "weight");
+  const { weight, ...enemy } = choice; // strip helper field
+  return clone(enemy);
+}
+
 function gainXP(x) {
   x = Math.max(1, Math.floor(x * getXpMult()));
   S.xp += x;
@@ -1918,7 +1949,7 @@ function rollEncounter(opts = {}) {
     const byDepth = eligibleEnemies(S.depth);
     const byScale = byDepth.filter((e) => e.hp <= 10 + S.depth * 4);
     const pickFrom = byScale.length ? byScale : byDepth;
-    S.enemy = clone(RNG.pick(pickFrom));
+    S.enemy = pickEnemyBiased(S.depth);
     setEncounterStatus("Enemy!");
     openCombat(
       `A <strong>${S.enemy.name}</strong> emerges from the dark! (HP ${S.enemy.hp})`
