@@ -1792,7 +1792,7 @@ function ensureLobby() {
   });
 
   const title = document.createElement("div");
-  title.textContent = "Lobby — Meta Upgrades";
+  title.textContent = "Lobby — Upgrades";
   Object.assign(title.style, {
     fontSize: "22px",
     marginBottom: "6px",
@@ -1827,7 +1827,7 @@ function ensureLobby() {
   });
 
   const startBtn = document.createElement("button");
-  startBtn.textContent = "Start Run";
+  startBtn.textContent = "Enter Dungeon";
   Object.assign(startBtn.style, {
     padding: "10px 14px",
     borderRadius: "999px",
@@ -2815,10 +2815,6 @@ function useScoutPulse() {
 
 function waitTurn() {
   addLog("You wait, knowing the only way out is to keep moving…");
-  if (RNG.chance(15)) {
-    addLog("Something approaches!", "warn");
-    rollEncounter();
-  }
 }
 
 // ------------------------------
