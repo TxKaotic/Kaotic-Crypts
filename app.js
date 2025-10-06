@@ -21,6 +21,8 @@ const RNG = {
 const TOKEN_MULT = 1.0; // tune later (e.g., 1.25 if you want juicier rewards)
 const REST_DIMINISH_FACTOR = 0.9; // try 0.90–0.95 for very gentle, 0.85 for moderate
 const REST_DECAY_STYLE = "gentle"; // "gentle" | "exp"
+const BOSS_FLOOR_INTERVAL = 10; // 10, 20, 30, ...
+const BOSS_MAP_SIZE = 1;
 // ---- Meta (stubbed) ----
 // Persisted player-wide upgrades (not items). Adjust values here to test.
 const META_KEY = "retro-dungeon-meta";
@@ -45,6 +47,10 @@ function restDiminish(n) {
   return REST_DECAY_STYLE === "gentle"
     ? Math.pow(f, Math.sqrt(n))
     : Math.pow(f, n);
+}
+
+function isBossFloor(depth) {
+  return depth > 0 && depth % BOSS_FLOOR_INTERVAL === 0;
 }
 
 // --- Meta currency (for lobby purchases) ---
@@ -259,6 +265,97 @@ const ENEMIES = [
     img: "assets/boss1SVG.svg",
     minDepth: 15,
   },
+];
+
+// New boss catalog — tweak freely
+const BOSSES = [
+  {
+    depth: 10,
+    key: "guardian_idol",
+    name: "Guardian Idol",
+    hp: 200,
+    atk: [1, 22],
+    gold: [100, 2400],
+    xp: 250,
+    img: "assets/guardianidolSVG.svg",
+    drops: {
+      // loot table (all optional)
+      items: [
+        { key: "potion_greater", qty: 5, chance: 100 },
+        { key: "bomb_incendiary", qty: 3, chance: 50 },
+      ],
+      weapons: [
+        { template: "knight_blade", powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
+      ],
+      shields: [
+        { template: "steel_heater", chance: 50 }, // must match a SHIELDS key
+      ],
+    },
+  },
+  {
+    depth: 20,
+    key: "abyssal_wyrmling",
+    name: "Abyssal Wyrmling",
+    hp: 300,
+    atk: [3, 25],
+    gold: [200, 3500],
+    xp: 550,
+    img: "assets/abyssalwyrmSVG.svg",
+    drops: {
+      items: [
+        { key: "potion_giga", qty: 5, chance: 100 },
+        { key: "bomb_incendiary", qty: 3, chance: 50 },
+      ],
+
+      weapons: [
+        { template: "obsidian_falchion", powerFactor: 1.0, chance: 30 },
+      ],
+      shields: [{ template: "sunsteel_barrier", chance: 30 }],
+    },
+  },
+  {
+    depth: 30,
+    key: "abyssal_wyrm",
+    name: "Abyssal Wyrm",
+    hp: 450,
+    atk: [3, 35],
+    gold: [500, 3500],
+    xp: 750,
+    img: "assets/abyssalwyrmSVG.svg",
+    drops: {
+      items: [
+        { key: "potion_giga", qty: 5, chance: 100 },
+        { key: "bomb_incendiary", qty: 3, chance: 50 },
+      ],
+
+      weapons: [{ template: "dragonfang", powerFactor: 1.0, chance: 25 }],
+      shields: [{ template: "crystal_ward", chance: 25 }],
+    },
+  },
+  {
+    depth: 40,
+    key: "guardian_idol",
+    name: "Guardian Idol",
+    hp: 500,
+    atk: [3, 40],
+    gold: [1000, 5000],
+    xp: 1000,
+    img: "assets/guardianidolSVG.svg",
+    drops: {
+      // loot table (all optional)
+      items: [
+        { key: "potion_greater", qty: 10, chance: 100 },
+        { key: "bomb_incendiary", qty: 5, chance: 50 },
+      ],
+      weapons: [
+        { template: "obsidian_falchion", powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
+      ],
+      shields: [
+        { template: "crystal_ward", chance: 50 }, // must match a SHIELDS key
+      ],
+    },
+  },
+  // Add more for 30, 40, ... (or reuse the closest lower one if missing)
 ];
 
 // Consumables — unique keys, clear scaling
@@ -707,7 +804,7 @@ function sanitizeState() {
     S.enemy = null;
   }
 
-  if (!S.exitPos) generateExit();
+  if (!S.exitPos && !isBossFloor(S.depth)) generateExit();
 }
 
 // --- Helper: only allow enemies whose required depth is met ---
@@ -742,6 +839,85 @@ function pickUniqueWeighted(pool, count, weightKey = "weight") {
     }
   }
   return picks;
+}
+
+function getBossForDepth(depth) {
+  // exact match first
+  let b = BOSSES.find((x) => x.depth === depth);
+  if (b) return clone(b);
+
+  // else pick the highest boss <= depth (fallback for future 30, 40... if not defined yet)
+  const candidates = BOSSES.filter((x) => x.depth <= depth).sort(
+    (a, z) => a.depth - z.depth
+  );
+  return clone(candidates[candidates.length - 1] || BOSSES[0]);
+}
+
+function startBossEncounter(depth) {
+  const boss = getBossForDepth(depth);
+  boss.isBoss = true; // tag so defeat handler knows it's a boss
+  S.enemy = boss;
+  setEncounterStatus("Boss!");
+  openCombat(
+    `A <strong>${boss.name}</strong> towers before you! (HP ${boss.hp})`
+  );
+}
+
+function handleBossDrops(boss) {
+  const d = boss?.drops || {};
+
+  // Items (from LOOT_TABLE by key)
+  if (Array.isArray(d.items)) {
+    d.items.forEach((it) => {
+      const chance = it.chance ?? 100;
+      if (RNG.chance(chance)) {
+        const qty = it.qty ?? 1;
+        addItem(it.key, qty);
+        const meta = LOOT_TABLE.find((l) => l.key === it.key);
+        addLog(
+          `Boss drops <strong>${meta?.name || it.key}</strong> x${qty}.`,
+          "good"
+        );
+      }
+    });
+  }
+
+  // Weapons (by SWORDS template key)
+  if (Array.isArray(d.weapons)) {
+    d.weapons.forEach((dw) => {
+      const chance = dw.chance ?? 100;
+      if (RNG.chance(chance)) {
+        const tpl = SWORDS.find((s) => s.key === dw.template);
+        if (tpl) {
+          const pf = dw.powerFactor ?? 1.0;
+          const w = makeWeaponFromTemplate(tpl, "drop", pf);
+          addWeapon(w);
+          addLog(
+            `Boss drops <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
+            "good"
+          );
+        }
+      }
+    });
+  }
+
+  // Shields (by SHIELDS template key)
+  if (Array.isArray(d.shields)) {
+    d.shields.forEach((ds) => {
+      const chance = ds.chance ?? 100;
+      if (RNG.chance(chance)) {
+        const tpl = SHIELDS.find((s) => s.key === ds.template);
+        if (tpl) {
+          const sh = makeShieldFromTemplate(tpl, "drop");
+          addShield(sh);
+          addLog(
+            `Boss drops <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
+            "good"
+          );
+        }
+      }
+    });
+  }
 }
 
 // Glimmer effect
@@ -926,7 +1102,7 @@ function ensureMap() {
     );
   }
   S.map[S.pos.y][S.pos.x] = true;
-  if (!S.exitPos) generateExit();
+  if (!S.exitPos && !isBossFloor(S.depth)) generateExit();
 }
 
 function renderMap() {
@@ -1042,6 +1218,12 @@ function refreshUI() {
 // Exit / Floors
 // ------------------------------
 function generateExit() {
+  // Never make an exit on boss floors or 1×1 maps
+  if (isBossFloor(S.depth) || S.mapSize <= 1) {
+    S.exitPos = null;
+    S.exitDiscovered = false;
+    return;
+  }
   let x, y;
   do {
     x = RNG.int(0, S.mapSize - 1);
@@ -1080,11 +1262,23 @@ function checkExitContact() {
 
 function descend() {
   S.depth += 1;
+
+  // Boss floors are single-tile, otherwise use your normal map size (7)
+  S.mapSize = isBossFloor(S.depth) ? BOSS_MAP_SIZE : 7;
+
   S.map = Array.from({ length: S.mapSize }, () => Array(S.mapSize).fill(false));
   S.pos = { x: 0, y: 0 };
   S.map[S.pos.y][S.pos.x] = true;
   S.restsThisFloor = 0;
-  generateExit();
+
+  // No exit on boss floor; otherwise generate as usual
+  if (isBossFloor(S.depth)) {
+    S.exitPos = null;
+    S.exitDiscovered = false;
+  } else {
+    generateExit();
+  }
+
   // Refresh Explorer charges per floor
   S.scoutCharges = getScoutPerFloor();
   if (S.scoutCharges > 0)
@@ -1093,11 +1287,23 @@ function descend() {
       "good"
     );
 
-  addLog(`<em>You descend to Depth ${S.depth}…</em>`, "good");
+  addLog(
+    isBossFloor(S.depth)
+      ? `<em>You descend to Depth ${S.depth}… A vast presence fills the air.</em>`
+      : `<em>You descend to Depth ${S.depth}…</em>`,
+    "good"
+  );
+
   renderMap();
   setRoom();
   renderStats();
-  setEncounterStatus("Idle");
+
+  // Force the boss encounter immediately
+  if (isBossFloor(S.depth)) {
+    startBossEncounter(S.depth);
+  } else {
+    setEncounterStatus("Idle");
+  }
 }
 
 // ------------------------------
@@ -1245,6 +1451,28 @@ function useSpecificItem(key) {
       if (S.enemy.hp <= 0) {
         const gold = RNG.int(...S.enemy.gold);
         const xp = S.enemy.xp;
+
+        // 🔒 Boss-specific defeat flow
+        if (S.enemy.isBoss) {
+          addCombatLog(
+            `The ${S.enemy.name} is obliterated! <span class="good">${gold}g</span> scooped.`,
+            "good"
+          );
+          gainGold(gold);
+          gainXP(xp);
+          handleBossDrops(S.enemy);
+          S.enemy = null;
+          setEncounterStatus("Idle");
+          closeCombat();
+          addLog(
+            "<em>With the guardian fallen, a path below reveals itself…</em>",
+            "good"
+          );
+          descend();
+          return;
+        }
+
+        // Normal enemy defeat flow (no boss)
         addCombatLog(
           `The ${S.enemy.name} is obliterated! <span class="good">${gold}g</span> scooped.`,
           "good"
@@ -1958,18 +2186,149 @@ function doAncientTablet() {
 }
 
 function rollEncounter(opts = {}) {
-  // Target distribution (out of 100):
-  // 1–35   => Enemy (35%)
-  // 36–55  => Trap (20%)
-  // 56–65  => Event bundle: campfire/fountain/ore/lever/chest/tablet (10% total)
-  // 66–75  => Wandering Trader (10%)  [blocked by traderCooldown => becomes empty]
-  // 76–80  => Weapon Trader (5%)      [blocked by traderCooldown => becomes empty]
-  // 81–100 => Empty (20%)
+  // New target distribution (out of 100):
+  //  1–28   => Enemy (28%)                      ↓ fewer monsters
+  // 29–43   => Trap (15%)                        ↓ fewer traps
+  // 44–65   => Event bundle (22%)                ↑ more events
+  //              (biased toward loot-only events; no surprise combats)
+  // 66–75   => Wandering Trader (10%)            (falls back to loot event if on cooldown)
+  // 76–80   => Weapon Trader (5%)                (falls back to loot event if on cooldown)
+  // 81–100  => Empty (20%)
   const { forbidEvents = false } = opts;
+
+  // No random encounters on boss floors
+  if (isBossFloor(S.depth)) return;
+
+  // ---------- Loot-only micro events (guaranteed loot, zero combat) ----------
+  const doLooseStash = () => {
+    // 1–2 consumables from LOOT_TABLE
+    const cnt = RNG.chance(40) ? 2 : 1;
+    const picks = [];
+    for (let i = 0; i < cnt; i++) picks.push(RNG.pick(LOOT_TABLE));
+
+    // Merge duplicates for a cleaner dialog
+    const merged = {};
+    picks.forEach((p) => {
+      merged[p.key] = (merged[p.key] || 0) + 1;
+    });
+
+    const lines = Object.entries(merged).map(([k, q]) => {
+      const meta = LOOT_TABLE.find((l) => l.key === k);
+      return `<li><strong>${meta?.name || k}</strong> ×${q}</li>`;
+    });
+
+    if (forbidEvents) {
+      // Rest forbids modals — just grant
+      Object.entries(merged).forEach(([k, q]) => addItem(k, q));
+      addLog(
+        `You find a tucked-away stash: ${lines.length} item(s) added.`,
+        "good"
+      );
+      return;
+    }
+
+    openEventModal({
+      title: "Loose Stash",
+      img: "assets/treasureSVG.svg",
+      html: `Under a broken flagstone you uncover:<ul style="text-align:left;margin:8px 0 0 20px">${lines.join(
+        ""
+      )}</ul>`,
+      primaryText: "Take Everything",
+      secondaryText: "Leave It",
+      onPrimary: () => {
+        Object.entries(merged).forEach(([k, q]) => {
+          addItem(k, q);
+          const meta = LOOT_TABLE.find((l) => l.key === k);
+          addLog(`You take <strong>${meta?.name || k}</strong> ×${q}.`, "good");
+        });
+      },
+      onSecondary: () => addLog("You leave the stash untouched."),
+    });
+  };
+
+  const doGearCache = () => {
+    // One free weapon or shield (no strings attached)
+    const giveWeapon = RNG.chance(50);
+    if (giveWeapon) {
+      const tpl = pickDropWeapon();
+      const w = makeWeaponFromTemplate(tpl, "drop", 1.0);
+      if (forbidEvents) {
+        addWeapon(w);
+        addLog(
+          `You pry open a gear cache: <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
+          "good"
+        );
+        return;
+      }
+      openEventModal({
+        title: "Gear Cache",
+        img: "assets/treasureSVG.svg",
+        html: `Inside the splintered crate lies a <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
+        primaryText: "Take Weapon",
+        secondaryText: "Leave It",
+        onPrimary: () => {
+          addWeapon(w);
+          addLog(
+            `You take <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
+            "good"
+          );
+        },
+        onSecondary: () => addLog("You leave the cache closed."),
+      });
+    } else {
+      const tpl = pickDropShield();
+      const sh = makeShieldFromTemplate(tpl, "drop");
+      if (forbidEvents) {
+        addShield(sh);
+        addLog(
+          `You pry open a gear cache: <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
+          "good"
+        );
+        return;
+      }
+      openEventModal({
+        title: "Gear Cache",
+        img: "assets/treasureSVG.svg",
+        html: `Packed in straw: <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
+        primaryText: "Take Shield",
+        secondaryText: "Leave It",
+        onPrimary: () => {
+          addShield(sh);
+          addLog(
+            `You take <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
+            "good"
+          );
+        },
+        onSecondary: () => addLog("You leave the cache closed."),
+      });
+    }
+  };
+
+  // Pick a weighted event, biased toward loot/gold
+  const runWeightedEvent = () => {
+    if (forbidEvents) {
+      // If we were called while resting with forbidEvents=true, still allow non-modal loot
+      RNG.chance(55) ? doLooseStash() : doGearCache();
+      return;
+    }
+    const eventPool = [
+      { fn: doLooseStash, weight: 6 }, // ⭐ guaranteed consumable loot
+      { fn: doGearCache, weight: 3 }, // ⭐ guaranteed gear (weapon/shield)
+      { fn: doOreVein, weight: 3 }, // 💰 gold
+      { fn: doTreasureChest, weight: 2 }, // 💰/🎁 (mimic possible, lower weight)
+      { fn: doAncientTablet, weight: 2 }, // 📜 XP
+      { fn: doCampfire, weight: 2 }, // ✚ heal (risk ambush)
+      { fn: doFountain, weight: 2 }, // ✚ small heal / risk
+      { fn: doSecretPassage, weight: 1 }, // ★ reveal exit
+    ];
+    const choice = weightedPick(eventPool, "weight");
+    choice.fn();
+  };
+
   const r = RNG.int(1, 100);
 
-  // --- Enemy (35%) ---
-  if (r <= 35) {
+  // --- Enemy (28%) ---
+  if (r <= 28) {
     S.enemy = pickEnemyBiased(S.depth);
     setEncounterStatus("Enemy!");
     openCombat(
@@ -1978,8 +2337,8 @@ function rollEncounter(opts = {}) {
     return;
   }
 
-  // --- Trap (20%) ---
-  if (r <= 55) {
+  // --- Trap (15%) ---
+  if (r <= 43) {
     const dmg = RNG.int(1, 4 + Math.floor(S.depth / 2));
     S.hp = Math.max(0, S.hp - dmg);
     addLog(
@@ -1991,21 +2350,9 @@ function rollEncounter(opts = {}) {
     return;
   }
 
-  // --- Event bundle (10%) ---
+  // --- Event bundle (22%) ---
   if (r <= 65) {
-    if (forbidEvents) {
-      addLog("You keep still; nothing turns up while you rest.");
-      return;
-    }
-    const eventFns = [
-      doCampfire,
-      doFountain,
-      doOreVein,
-      doSecretPassage,
-      doTreasureChest,
-      doAncientTablet,
-    ];
-    RNG.pick(eventFns)();
+    runWeightedEvent();
     return;
   }
 
@@ -2015,7 +2362,8 @@ function rollEncounter(opts = {}) {
       openShop();
       S.traderCooldown = 8;
     } else {
-      addLog("This room appears empty.");
+      // Fallback to a loot-leaning event
+      runWeightedEvent();
     }
     return;
   }
@@ -2026,7 +2374,8 @@ function rollEncounter(opts = {}) {
       openWeaponShop();
       S.traderCooldown = 8;
     } else {
-      addLog("This room appears empty.");
+      // Fallback to a loot-leaning event
+      runWeightedEvent();
     }
     return;
   }
@@ -2097,6 +2446,32 @@ function playerAttack() {
     if (S.enemy.hp <= 0) {
       const gold = RNG.int(...S.enemy.gold);
       const xp = S.enemy.xp;
+
+      if (S.enemy.isBoss) {
+        addCombatLog(
+          `The ${S.enemy.name} is vanquished! You seize <span class="good">${gold}g</span>.`,
+          "good"
+        );
+        gainGold(gold);
+        gainXP(xp);
+
+        // Boss-specific drops
+        handleBossDrops(S.enemy);
+
+        S.enemy = null;
+        setEncounterStatus("Idle");
+        closeCombat();
+
+        addLog(
+          "<em>With the guardian fallen, a shift in the stone reveals a path below…</em>",
+          "good"
+        );
+        // Auto-descend after a boss
+        descend();
+        return; // important: don't fall through to normal drop logic
+      }
+
+      // --- Normal enemy defeat flow ---
       addCombatLog(
         `The ${S.enemy.name} is defeated! You loot <span class="good">${gold}g</span>.`,
         "good"
@@ -2104,7 +2479,7 @@ function playerAttack() {
       gainGold(gold);
       gainXP(xp);
       maybeDropWeapon();
-      maybeDropShield(); // chance to drop a shield
+      maybeDropShield();
       S.enemy = null;
       setEncounterStatus("Idle");
       closeCombat();
@@ -2129,6 +2504,13 @@ function playerAttack() {
 
 function tryFlee() {
   if (!S.enemy) return;
+
+  if (S.enemy.isBoss) {
+    addCombatLog("There is no escape from this foe!", "warn");
+    enemyAttack();
+    return;
+  }
+
   if (RNG.chance(55)) {
     addCombatLog("You slip away into the shadows.", "good");
     S.enemy = null;
@@ -2340,13 +2722,18 @@ function move(dx, dy) {
   S.pos.y = ny;
   S.map[ny][nx] = true;
 
-  // tick down trader cooldown per step
   if (S.traderCooldown > 0) S.traderCooldown--;
 
   renderMap();
   setRoom();
 
-  // Exit handling first
+  // 🔒 Boss floors: no exit, no encounters, no wandering
+  if (isBossFloor(S.depth)) {
+    addLog("There is no way out but through…", "warn");
+    setEncounterStatus(S.enemy ? "Boss!" : "Idle");
+    return;
+  }
+
   if (checkExitContact()) return;
 
   if (revisiting) {
