@@ -544,6 +544,13 @@ const SWORDS = [
     name: "Empyrean Greatsword",
     atk: 15,
     minDepth: 24,
+    weight: 2,
+  },
+  {
+    key: "abyssal_whip",
+    name: "Abyssal Whip",
+    atk: 8,
+    minDepth: 3,
     weight: 1,
   },
 ];
@@ -2031,7 +2038,7 @@ function doTreasureChest() {
           `The chest sprouts fangs! It's a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
         );
       } else if (roll <= 80) {
-        const gold = RNG.int(10 + S.depth, 25 + S.depth * 2);
+        const gold = RNG.int(25 + S.depth, 25 + S.depth * 2);
         addLog(`Inside: <strong>${gold}g</strong>.`, "good");
         gainGold(gold);
       } else {
@@ -2054,14 +2061,14 @@ function doFountain() {
     onPrimary: () => {
       const roll = RNG.int(1, 100);
       if (roll <= 40) {
-        const heal = Math.ceil((8 + Math.floor(S.depth / 3)) * getHealMult());
+        const heal = Math.ceil((10 + Math.floor(S.depth / 3)) * getHealMult());
         S.hp = Math.min(S.maxHp, S.hp + heal);
         addLog(
           `The water is rejuvenating. <span class="good">+${heal} HP</span>.`,
           "good"
         );
       } else if (roll <= 70) {
-        const heal = Math.ceil((3 + Math.floor(S.depth / 5)) * getHealMult());
+        const heal = Math.ceil((12 + Math.floor(S.depth / 5)) * getHealMult());
         S.hp = Math.min(S.maxHp, S.hp + heal);
         addLog(
           `Cool and refreshing. <span class="good">+${heal} HP</span>.`,
@@ -2070,7 +2077,7 @@ function doFountain() {
       } else if (roll <= 90) {
         addLog("Nothing happens. Perhaps its magic is spent.");
       } else {
-        const dmg = RNG.int(2, 5);
+        const dmg = RNG.int(2, 15);
         S.hp = Math.max(0, S.hp - dmg);
         addLog(`Ugh—tainted! <span class="bad">-${dmg} HP</span>.`, "bad");
         if (S.hp <= 0) return onDeath();
@@ -2089,7 +2096,7 @@ function doCampfire() {
     primaryText: "Rest",
     secondaryText: "Move On",
     onPrimary: () => {
-      const heal = Math.ceil(RNG.int(3, 7) * getHealMult());
+      const heal = Math.ceil(RNG.int(3, 15) * getHealMult());
       S.hp = Math.min(S.maxHp, S.hp + heal);
       addLog(
         `You warm your bones. <span class="good">+${heal} HP</span>.`,
@@ -2545,17 +2552,12 @@ function openWeaponShop() {
   // Grab up to 5 unique templates (weighted, no duplicates)
   const uniqueTemplates = pickUniqueWeighted(candidates, 5);
 
-  // Build shop items: slightly weaker than drops + cheaper prices
+  // Build shop items at FULL power (no reduction/replicas)
   const weaponsForSale = uniqueTemplates.map((tpl) => {
-    const powerFactor = 0.7 + Math.random() * 0.15; // 0.70–0.85
-    const w = makeWeaponFromTemplate(tpl, "shop", powerFactor);
+    // Full strength: powerFactor = 1.0
+    const w = makeWeaponFromTemplate(tpl, "shop", 1.0);
 
-    // Mark weaker rolls as replicas for flavor
-    if (!w.name.includes("(Replica)") && powerFactor < 0.8) {
-      w.name += " (Replica)";
-    }
-
-    // Override with cheaper shop price
+    // Use the gentler shop price curve you defined
     w.price = shopWeaponPrice(w.atk);
 
     return w;
