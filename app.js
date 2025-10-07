@@ -18,13 +18,27 @@ const RNG = {
     return Math.random() * 100 < pct;
   },
 };
-const TOKEN_MULT = 1.0; // tune later (e.g., 1.25 if you want juicier rewards)
-const REST_DIMINISH_FACTOR = 0.9; // try 0.90–0.95 for very gentle, 0.85 for moderate
+const TOKEN_MULT = 0.5; // tune later (e.g., 1.25 if you want juicier rewards)
+const REST_DIMINISH_FACTOR = 0.75; // try 0.90–0.95 for very gentle, 0.85 for moderate
 const REST_DECAY_STYLE = "gentle"; // "gentle" | "exp"
 const BOSS_FLOOR_INTERVAL = 10; // 10, 20, 30, ...
 const BOSS_MAP_SIZE = 1;
 // ---- Meta (stubbed) ----
 // Persisted player-wide upgrades (not items). Adjust values here to test.
+
+const COST_MULT = 2.0; // nudge whole economy: 0.9 cheaper, 1.2 pricier, etc.
+
+// Linear → Exponential after an elbow.
+// tier is the number of tiers already owned (0-based).
+function elbowCostFactory({ base, step, elbow, growth }) {
+  return (tier) => {
+    const lin = base + step * tier; // gentle start
+    if (tier < elbow) return Math.round(COST_MULT * lin);
+    const after = tier - elbow + 1; // post-elbow steps
+    return Math.round(COST_MULT * lin * Math.pow(growth, after));
+  };
+}
+
 const META_KEY = "retro-dungeon-meta";
 function loadMeta() {
   try {
@@ -90,34 +104,35 @@ const UPGRADE_DEFS = {
   xpMult: {
     label: "XP Booster",
     desc: "+10% XP per tier (max 2.0× total)",
-    maxTier: 10, // 10 tiers × 10% = 2.0× (matches getXpMult cap)
-    cost(tier) {
-      return 2 + tier * 2;
-    }, // 2,4,6,... scalable & cheap early
+    maxTier: 20,
+    // Starts cheap, ramps hard after tier 6. Last tiers ~200 tokens each.
+    cost: elbowCostFactory({ base: 4, step: 2, elbow: 6, growth: 1.12 }),
   },
+
   goldMult: {
     label: "Gold Booster",
     desc: "+10% Gold per tier (max 1.5× total)",
-    maxTier: 5, // 5 tiers × 10% = 1.5× (matches getGoldMult cap)
-    cost(tier) {
-      return 3 + tier * 3;
-    }, // 3,6,9,...
+    maxTier: 20,
+    // Slightly pricier curve than XP because it feeds your run economy.
+    // Last tiers ~350–360 tokens each.
+    cost: elbowCostFactory({ base: 8, step: 3, elbow: 5, growth: 1.12 }),
   },
+
   vitality: {
     label: "Vitality",
     desc: "+2 Max HP & +5% healing per tier",
-    maxTier: 12, // +24 max HP total, +60% heal
-    cost(tier) {
-      return 4 + tier * 3;
-    }, // 4,7,10,...
+    maxTier: 20,
+    // Mid-high endgame cost; tanky builds still pay a lot to cap.
+    // Last tiers ~300 tokens each.
+    cost: elbowCostFactory({ base: 6, step: 6, elbow: 4, growth: 1.4 }),
   },
+
   explorer: {
     label: "Explorer",
     desc: "+1 Scout Pulse per floor (max +3)",
-    maxTier: 3, // hard cap from getScoutPerFloor()
-    cost(tier) {
-      return 6 + tier * 6;
-    }, // 6,12,18
+    maxTier: 3,
+    // Tiny tree; make each step stingy. 18 → 60 → ~170–180
+    cost: elbowCostFactory({ base: 18, step: 12, elbow: 1, growth: 2.0 }),
   },
 };
 
@@ -160,110 +175,110 @@ function refundAllUpgrades() {
 
 // ---- Drop rate knobs (percent chances) ----
 const DROP_RATES = {
-  weapon: 15, // swords: ~12% after a kill (was 20%)
-  shield: 10, // shields: ~7% after a kill (was 15%)
+  weapon: 12, // swords: ~12% after a kill (was 20%)
+  shield: 7, // shields: ~7% after a kill (was 15%)
 };
 
 const ENEMIES = [
   {
     key: "rat",
     name: "Mutated Rat",
-    hp: 6,
-    atk: [1, 5],
+    hp: 10,
+    atk: [1, 6],
     gold: [1, 3],
-    xp: 5,
+    xp: 8,
     img: "./assets/ratSVG.svg",
     minDepth: 1,
   },
   {
     key: "bat",
     name: "Grimy Bat",
-    hp: 8,
-    atk: [1, 5],
+    hp: 15,
+    atk: [1, 8],
     gold: [2, 5],
-    xp: 8,
+    xp: 10,
     img: "assets/batSVG.svg",
     minDepth: 1,
   },
   {
     key: "slime",
     name: "Noxious Slime",
-    hp: 10,
-    atk: [1, 8],
+    hp: 18,
+    atk: [1, 9],
     gold: [3, 7],
-    xp: 10,
+    xp: 14,
     img: "./assets/slimeSVG.svg",
     minDepth: 1,
   },
   {
     key: "skeleton",
     name: "Cracked Skull",
-    hp: 14,
-    atk: [1, 10],
+    hp: 20,
+    atk: [2, 12],
     gold: [5, 10],
-    xp: 15,
+    xp: 18,
     img: "assets/crackedskullSVG.svg",
     minDepth: 3,
   },
   {
     key: "one_eye",
     name: "One Eye",
-    hp: 20,
-    atk: [3, 18],
+    hp: 30,
+    atk: [5, 22],
     gold: [5, 100],
     xp: 25,
     img: "assets/monster1SVG.svg",
     minDepth: 5,
   },
   {
-    key: "mage",
+    key: "tumekens_minion",
     name: "Tumeken's Minion",
-    hp: 25,
-    atk: [1, 15],
+    hp: 35,
+    atk: [5, 25],
     gold: [10, 120],
     xp: 35,
     img: "assets/wizardSVG.svg",
     minDepth: 5,
   },
   {
-    key: "mage",
+    key: "tumekens_guardian",
     name: "Tumeken's Guardian",
-    hp: 32,
-    atk: [1, 21],
+    hp: 45,
+    atk: [7, 28],
     gold: [50, 120],
     xp: 75,
     img: "assets/tumekensguardianSVG.svg",
     minDepth: 8,
   },
   {
-    key: "mage",
+    key: "tumekens_shadow",
     name: "Tumeken's Shadow",
     hp: 90,
-    atk: [1, 25],
+    atk: [5, 30],
     gold: [100, 300],
     xp: 250,
-    img: "assets/tumekensshadowSVG.svg", // fixed filename
+    img: "assets/temekensshadowSVG.svg",
     minDepth: 9,
   },
   {
-    key: "mage",
+    key: "tumeken",
     name: "Tumeken",
     hp: 300,
-    atk: [1, 28],
+    atk: [5, 35],
     gold: [1000, 3000],
     xp: 2500,
     img: "assets/tumekenSVG.svg",
-    minDepth: 10,
+    minDepth: 11,
   },
   {
-    key: "mage",
+    key: "nightmare",
     name: "Nightmare",
     hp: 350,
-    atk: [1, 40],
+    atk: [8, 30],
     gold: [1000, 5000],
     xp: 3000,
     img: "assets/boss1SVG.svg",
-    minDepth: 15,
+    minDepth: 12,
   },
 ];
 
@@ -274,7 +289,7 @@ const BOSSES = [
     key: "guardian_idol",
     name: "Guardian Idol",
     hp: 200,
-    atk: [1, 22],
+    atk: [5, 22],
     gold: [100, 2400],
     xp: 250,
     img: "assets/guardianidolSVG.svg",
@@ -282,7 +297,7 @@ const BOSSES = [
       // loot table (all optional)
       items: [
         { key: "potion_greater", qty: 5, chance: 100 },
-        { key: "bomb_incendiary", qty: 3, chance: 50 },
+        { key: "bomb_incendiary", qty: 3, chance: 100 },
       ],
       weapons: [
         { template: "knight_blade", powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
@@ -297,14 +312,14 @@ const BOSSES = [
     key: "abyssal_wyrmling",
     name: "Abyssal Wyrmling",
     hp: 300,
-    atk: [3, 25],
+    atk: [5, 25],
     gold: [200, 3500],
     xp: 550,
     img: "assets/abyssalwyrmSVG.svg",
     drops: {
       items: [
         { key: "potion_giga", qty: 5, chance: 100 },
-        { key: "bomb_incendiary", qty: 3, chance: 50 },
+        { key: "bomb_incendiary", qty: 3, chance: 100 },
       ],
 
       weapons: [
@@ -318,18 +333,18 @@ const BOSSES = [
     key: "abyssal_wyrm",
     name: "Abyssal Wyrm",
     hp: 450,
-    atk: [3, 35],
+    atk: [5, 35],
     gold: [500, 3500],
     xp: 750,
     img: "assets/abyssalwyrmSVG.svg",
     drops: {
       items: [
         { key: "potion_giga", qty: 5, chance: 100 },
-        { key: "bomb_incendiary", qty: 3, chance: 50 },
+        { key: "bomb_incendiary", qty: 3, chance: 100 },
       ],
 
-      weapons: [{ template: "dragonfang", powerFactor: 1.0, chance: 25 }],
-      shields: [{ template: "crystal_ward", chance: 25 }],
+      weapons: [{ template: "dragonfang", powerFactor: 1.0, chance: 50 }],
+      shields: [{ template: "crystal_ward", chance: 50 }],
     },
   },
   {
@@ -337,7 +352,7 @@ const BOSSES = [
     key: "guardian_idol",
     name: "Guardian Idol",
     hp: 500,
-    atk: [3, 40],
+    atk: [5, 40],
     gold: [1000, 5000],
     xp: 1000,
     img: "assets/guardianidolSVG.svg",
@@ -345,7 +360,7 @@ const BOSSES = [
       // loot table (all optional)
       items: [
         { key: "potion_greater", qty: 10, chance: 100 },
-        { key: "bomb_incendiary", qty: 5, chance: 50 },
+        { key: "bomb_incendiary", qty: 5, chance: 100 },
       ],
       weapons: [
         { template: "obsidian_falchion", powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
@@ -1626,24 +1641,36 @@ const ENEMY_BIAS = {
 
 function pickEnemyBiased(depth) {
   const byDepth = eligibleEnemies(depth);
-  const byScale = byDepth.filter((e) => e.hp <= 10 + depth * 4); // safety gate
+
+  // --- Softer HP gate + explicit allow for late-game elites ---
+  // This lets big elites enter the pool once you're past their minDepth,
+  // without opening the floodgates to absolutely everything.
+  const hpGate = 10 + depth * 18; // was *4; loosened so 300–350 HP can appear by mid-teens
+  const eliteKeys = new Set(["tumeken", "nightmare"]); // always allow these at/after minDepth
+
+  const byScale = byDepth.filter(
+    (e) =>
+      e.hp <= hpGate || (eliteKeys.has(e.key) && (e.minDepth ?? 1) <= depth)
+  );
+
   const pool = byScale.length ? byScale : byDepth;
 
+  // --- Existing biasing, with a tiny rarity nerf for huge elites ---
   const depthBias = Math.min(ENEMY_BIAS.cap, ENEMY_BIAS.perDepth * depth);
 
-  // Weight grows as enemy.minDepth approaches current depth
   const weightedPool = pool.map((e) => {
     const rel = Math.max(
       0,
       Math.min(1, (e.minDepth ?? 1) / Math.max(1, depth))
     );
-    let w = 1 + depthBias * Math.pow(rel, ENEMY_BIAS.curve); // base ≈1, up to 1+depthBias
-    if ((e.minDepth ?? 1) >= depth - 1) w += ENEMY_BIAS.newUnlockBonus; // little “recent unlock” bump
+    let w = 1 + depthBias * Math.pow(rel, ENEMY_BIAS.curve);
+    if ((e.minDepth ?? 1) >= depth - 1) w += ENEMY_BIAS.newUnlockBonus;
+    if (e.hp >= 200) w *= 0.6; // make big elites rarer but still possible
     return { ...e, weight: w };
   });
 
   const choice = weightedPick(weightedPool, "weight");
-  const { weight, ...enemy } = choice; // strip helper field
+  const { weight, ...enemy } = choice;
   return clone(enemy);
 }
 
@@ -2028,7 +2055,7 @@ function doTreasureChest() {
     secondaryText: "Leave It",
     onPrimary: () => {
       const roll = RNG.int(1, 100);
-      if (roll <= 15) {
+      if (roll <= 20) {
         // Mimic!
         const byDepth = eligibleEnemies(S.depth);
         const meta = RNG.pick(byDepth);
@@ -2038,7 +2065,7 @@ function doTreasureChest() {
           `The chest sprouts fangs! It's a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
         );
       } else if (roll <= 80) {
-        const gold = RNG.int(25 + S.depth, 25 + S.depth * 2);
+        const gold = RNG.int(50 + S.depth, 25 + S.depth * 2);
         addLog(`Inside: <strong>${gold}g</strong>.`, "good");
         gainGold(gold);
       } else {
@@ -2096,14 +2123,14 @@ function doCampfire() {
     primaryText: "Rest",
     secondaryText: "Move On",
     onPrimary: () => {
-      const heal = Math.ceil(RNG.int(3, 15) * getHealMult());
+      const heal = Math.ceil(RNG.int(3, 20) * getHealMult());
       S.hp = Math.min(S.maxHp, S.hp + heal);
       addLog(
         `You warm your bones. <span class="good">+${heal} HP</span>.`,
         "good"
       );
       renderStats();
-      if (RNG.chance(10)) {
+      if (RNG.chance(15)) {
         addLog("Shadows stir beyond the light…", "warn");
         const byDepth = eligibleEnemies(S.depth);
         S.enemy = clone(RNG.pick(byDepth));
@@ -2154,11 +2181,11 @@ function doOreVein() {
     primaryText: "Mine Ore",
     secondaryText: "Leave It",
     onPrimary: () => {
-      const gold = RNG.int(5 + S.depth, 15 + S.depth * 2);
+      const gold = RNG.int(10 + S.depth, 15 + S.depth * 2);
       addLog(`You chip free <strong>${gold}g</strong>.`, "good");
       gainGold(gold);
       if (RNG.chance(20)) {
-        const dmg = RNG.int(1, 4);
+        const dmg = RNG.int(1, 10);
         S.hp = Math.max(0, S.hp - dmg);
         addLog(
           `The ceiling sheds rubble! <span class="bad">-${dmg} HP</span>.`,
@@ -2180,7 +2207,7 @@ function doAncientTablet() {
     primaryText: "Study",
     secondaryText: "Ignore",
     onPrimary: () => {
-      const xp = RNG.int(3, 9) + Math.floor(S.depth / 3);
+      const xp = RNG.int(5, 55) + Math.floor(S.depth / 3);
       addLog(
         `You decipher a fragment of lore. <span class="good">+${xp} XP</span>.`,
         "good"
@@ -2346,7 +2373,7 @@ function rollEncounter(opts = {}) {
 
   // --- Trap (15%) ---
   if (r <= 43) {
-    const dmg = RNG.int(1, 4 + Math.floor(S.depth / 2));
+    const dmg = RNG.int(1, 2 + Math.floor(S.depth / 2));
     S.hp = Math.max(0, S.hp - dmg);
     addLog(
       `A hidden trap damages you for <span class="bad">${dmg} damage</span>.`,
