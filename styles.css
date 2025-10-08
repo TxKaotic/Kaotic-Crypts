@@ -111,7 +111,7 @@ button:active{ transform:translateY(1px) scale(.995); }
 @media (max-width:520px){ .actions{ grid-template-columns:1fr; } }
 
 /* D-pad (desktop default inside flow) */
-.dpad{ display:grid; grid-template-columns:repeat(3,64px); gap:8px; place-items:center; margin:4px 0 10px; }
+.dpad{ display:grid; grid-template-columns:repeat(3,64px); gap:8px; place-items:center; margin:20px 0 10px; justify-content: center; }
 .dpad .spacer{ width:64px; height:38px; }
 .dpad button{ width:64px; }
 
@@ -235,4 +235,7 @@ dialog::backdrop{ background:radial-gradient(60% 60% at 50% 40%, rgba(10,14,30,.
 
   /* hide the extra spacer so a third row isn't created */
   .dpad .spacer:last-child{ display:none; }
+}
+#aboutClose{
+  background: red;
 }
