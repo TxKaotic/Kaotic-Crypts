@@ -60,6 +60,17 @@
 
           <strong>Map</strong>
           <div id="map" class="map" role="grid" aria-label="Mini map"></div>
+
+
+         <div class="dpad" role="group" aria-label="Directions">
+            <span class="spacer"></span>
+            <button id="dirUp" title="North (W / ↑)">▲</button>
+            <span class="spacer"></span>
+            <button id="dirLeft" title="West (A / ←)">◄</button>
+            <button id="dirDown" title="South (S / ↓)">▼</button>
+            <button id="dirRight" title="East (D / →)">►</button>
+            <span class="spacer"></span>
+          </div> 
         </div>
       </section>
 
@@ -76,15 +87,7 @@
 
           <div style="height:10px"></div>
           <!-- <strong>Choose a direction</strong> -->
-          <div class="dpad" role="group" aria-label="Directions">
-            <span class="spacer"></span>
-            <button id="dirUp" title="North (W / ↑)">▲</button>
-            <span class="spacer"></span>
-            <button id="dirLeft" title="West (A / ←)">◄</button>
-            <button id="dirDown" title="South (S / ↓)">▼</button>
-            <button id="dirRight" title="East (D / →)">►</button>
-            <span class="spacer"></span>
-          </div>
+          
 
           <div class="actions" role="group" aria-label="Actions">
             <button id="actRest" title="Rest (R) — Recover a little HP. Risk: 30% chance of an ambush.">Rest</button>
@@ -154,14 +157,17 @@
   <dialog id="about">
     <form method="dialog" style="max-width:640px">
       <h3>About</h3>
-      <p>Explore the dungeon to become the strongest to exist.</p>
+      <p>Explore the dungeon. How far will you make it?</p>
       <ul>
         
         <li>Keyboard shortcuts for fast play.</li>
         <li>LocalStorage save slot (<code>retro-dungeon-save</code>).</li>
+        <li>Purchase upgrades with tokens earned after each run.</li>
+        <li>Good luck!</li>
+        <li>Designed by: <strong>Stephen Daniels</strong></li>
       </ul>
       <menu style="margin-top:10px">
-        <button value="cancel">Close</button>
+        <button id= "aboutClose" value="cancel">Close</button>
       </menu>
     </form>
   </dialog>
@@ -180,11 +186,12 @@
     <div class="bar mini"><span id="miniXpBar" class="xp" style="--val:0%"></span></div>
     <span id="miniXpText" class="mini-text">0/10</span>
   </div>
+
 </div> 
+
 <script src="./app.js"></script>
 </body>
 </html>
-
 
 
 
