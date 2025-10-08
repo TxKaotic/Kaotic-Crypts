@@ -20,7 +20,7 @@ const RNG = {
 };
 const TOKEN_MULT = 0.75; // tune later (e.g., 1.25 if you want juicier rewards)
 const REST_DIMINISH_FACTOR = 0.85; // try 0.90–0.95 for very gentle, 0.85 for moderate
-const REST_DECAY_STYLE = "gentle"; // "gentle" | "exp"
+const REST_DECAY_STYLE = 'gentle'; // "gentle" | "exp"
 const BOSS_FLOOR_INTERVAL = 10; // 10, 20, 30, ...
 const BOSS_MAP_SIZE = 1;
 // ---- Meta (stubbed) ----
@@ -39,7 +39,7 @@ function elbowCostFactory({ base, step, elbow, growth }) {
   };
 }
 
-const META_KEY = "retro-dungeon-meta";
+const META_KEY = 'retro-dungeon-meta';
 function loadMeta() {
   try {
     const s = localStorage.getItem(META_KEY);
@@ -58,7 +58,7 @@ function restDiminish(n) {
   if (n <= 0) return 1;
   const f = REST_DIMINISH_FACTOR;
   // "gentle" decays with sqrt(n): 1.00, 0.90, 0.81, 0.81, 0.73, 0.73, ...
-  return REST_DECAY_STYLE === "gentle"
+  return REST_DECAY_STYLE === 'gentle'
     ? Math.pow(f, Math.sqrt(n))
     : Math.pow(f, n);
 }
@@ -102,16 +102,16 @@ function getScoutPerFloor() {
 // ---------- Lobby: Upgrade catalog ----------
 const UPGRADE_DEFS = {
   xpMult: {
-    label: "XP Booster",
-    desc: "+10% XP per tier (max 2.0× total)",
+    label: 'XP Booster',
+    desc: '+10% XP per tier (max 2.0× total)',
     maxTier: 20,
     // Starts cheap, ramps hard after tier 6. Last tiers ~200 tokens each.
     cost: elbowCostFactory({ base: 4, step: 2, elbow: 6, growth: 1.12 }),
   },
 
   goldMult: {
-    label: "Gold Booster",
-    desc: "+10% Gold per tier (max 1.5× total)",
+    label: 'Gold Booster',
+    desc: '+10% Gold per tier (max 1.5× total)',
     maxTier: 20,
     // Slightly pricier curve than XP because it feeds your run economy.
     // Last tiers ~350–360 tokens each.
@@ -119,8 +119,8 @@ const UPGRADE_DEFS = {
   },
 
   vitality: {
-    label: "Vitality",
-    desc: "+2 Max HP & +5% healing per tier",
+    label: 'Vitality',
+    desc: '+2 Max HP & +5% healing per tier',
     maxTier: 20,
     // Mid-high endgame cost; tanky builds still pay a lot to cap.
     // Last tiers ~300 tokens each.
@@ -128,8 +128,8 @@ const UPGRADE_DEFS = {
   },
 
   explorer: {
-    label: "Explorer",
-    desc: "+1 Scout Pulse per floor (max +3)",
+    label: 'Explorer',
+    desc: '+1 Scout Pulse per floor (max +3)',
     maxTier: 3,
     // Tiny tree; make each step stingy. 18 → 60 → ~170–180
     cost: elbowCostFactory({ base: 18, step: 12, elbow: 1, growth: 2.0 }),
@@ -181,104 +181,208 @@ const DROP_RATES = {
 
 const ENEMIES = [
   {
-    key: "rat",
-    name: "Mutated Rat",
+    key: 'rat',
+    name: 'Mutated Rat',
     hp: 10,
-    atk: [1, 6],
+    atk: [1, 4],
     gold: [1, 3],
     xp: 8,
-    img: "./assets/ratSVG.svg",
+    img: './assets/ratSVG.svg',
     minDepth: 1,
   },
   {
-    key: "bat",
-    name: "Grimy Bat",
+    key: 'bat',
+    name: 'Grimy Bat',
     hp: 15,
-    atk: [1, 8],
+    atk: [1, 6],
     gold: [2, 5],
     xp: 10,
-    img: "assets/batSVG.svg",
+    img: 'assets/batSVG.svg',
     minDepth: 1,
   },
   {
-    key: "slime",
-    name: "Noxious Slime",
+    key: 'slime',
+    name: 'Noxious Slime',
     hp: 18,
-    atk: [1, 9],
+    atk: [1, 10],
     gold: [3, 7],
     xp: 14,
-    img: "./assets/slimeSVG.svg",
+    img: './assets/slimeSVG.svg',
     minDepth: 1,
   },
   {
-    key: "skeleton",
-    name: "Cracked Skull",
+    key: 'skeleton',
+    name: 'Cracked Skull',
     hp: 20,
     atk: [2, 12],
     gold: [5, 10],
     xp: 18,
-    img: "assets/crackedskullSVG.svg",
+    img: 'assets/crackedskullSVG.svg',
     minDepth: 3,
   },
   {
-    key: "one_eye",
-    name: "One Eye",
+    key: 'one_eye',
+    name: 'One Eye',
     hp: 30,
-    atk: [5, 22],
+    atk: [2, 22],
     gold: [5, 100],
     xp: 25,
-    img: "assets/monster1SVG.svg",
+    img: 'assets/monster1SVG.svg',
     minDepth: 5,
   },
   {
-    key: "tumekens_minion",
+    key: 'tumekens_minion',
     name: "Tumeken's Minion",
     hp: 35,
     atk: [5, 25],
     gold: [10, 120],
     xp: 35,
-    img: "assets/wizardSVG.svg",
+    img: 'assets/wizardSVG.svg',
     minDepth: 5,
   },
   {
-    key: "tumekens_guardian",
+    key: 'tumekens_guardian',
     name: "Tumeken's Guardian",
     hp: 45,
     atk: [7, 28],
     gold: [50, 120],
     xp: 75,
-    img: "assets/tumekensguardianSVG.svg",
+    img: 'assets/tumekensguardianSVG.svg',
     minDepth: 8,
   },
   {
-    key: "tumekens_shadow",
+    key: 'tumekens_shadow',
     name: "Tumeken's Shadow",
     hp: 90,
     atk: [3, 30],
     gold: [100, 300],
     xp: 250,
-    img: "assets/temekensshadowSVG.svg",
+    img: 'assets/temekensshadowSVG.svg',
     minDepth: 9,
   },
   {
-    key: "tumeken",
-    name: "Tumeken",
+    key: 'tumeken',
+    name: 'Tumeken',
     hp: 160,
     atk: [3, 24],
     gold: [1000, 3000],
     xp: 2500,
-    img: "assets/tumekenSVG.svg",
+    img: 'assets/tumekenSVG.svg',
     minDepth: 11,
   },
   {
-    key: "nightmare",
-    name: "Nightmare",
+    key: 'nightmare',
+    name: 'Nightmare',
     hp: 190,
     atk: [3, 30],
     gold: [1000, 5000],
     xp: 3000,
-    img: "assets/boss1SVG.svg",
+    img: 'assets/boss1SVG.svg',
     minDepth: 12,
+  },
+
+  // ------------------------------
+  // New enemies (varied + scaled)
+  // ------------------------------
+  {
+    key: 'mold_spider',
+    name: 'Mold Spider',
+    hp: 14,
+    atk: [1, 8],
+    gold: [2, 6],
+    xp: 12,
+    img: '',
+    minDepth: 2,
+  },
+  {
+    key: 'carrion_beetle',
+    name: 'Carrion Beetle',
+    hp: 22,
+    atk: [2, 12],
+    gold: [4, 9],
+    xp: 20,
+    img: '☠️',
+    minDepth: 4,
+  },
+  {
+    key: 'fungal_ogre',
+    name: 'Fungal Ogre',
+    hp: 40,
+    atk: [1, 18],
+    gold: [8, 20],
+    xp: 40,
+    img: '☠️',
+    minDepth: 6,
+  },
+  {
+    key: 'ember_wraith',
+    name: 'Ember Wraith',
+    hp: 55,
+    atk: [2, 22],
+    gold: [12, 35],
+    xp: 60,
+    img: '☠️',
+    minDepth: 7,
+  },
+  {
+    key: 'obsidian_golem',
+    name: 'Obsidian Golem',
+    hp: 100,
+    atk: [2, 26],
+    gold: [40, 150],
+    xp: 120,
+    img: '☠️',
+    minDepth: 10,
+  },
+  {
+    key: 'crypt_lancer',
+    name: 'Crypt Lancer',
+    hp: 140,
+    atk: [3, 30],
+    gold: [120, 300],
+    xp: 400,
+    img: '☠️',
+    minDepth: 13,
+  },
+  {
+    key: 'void_crawler',
+    name: 'Void Crawler',
+    hp: 165,
+    atk: [2, 34],
+    gold: [200, 450],
+    xp: 650,
+    img: '☠️',
+    minDepth: 14,
+  },
+  {
+    key: 'ashen_drake',
+    name: 'Ashen Drake',
+    hp: 200,
+    atk: [3, 38],
+    gold: [300, 800],
+    xp: 1200,
+    img: '☠️',
+    minDepth: 15,
+  },
+  {
+    key: 'abyssal_matriarch',
+    name: 'Abyssal Matriarch',
+    hp: 260,
+    atk: [4, 42],
+    gold: [600, 1500],
+    xp: 2000,
+    img: '☠️',
+    minDepth: 17,
+  },
+  {
+    key: 'eternal_warden',
+    name: 'Eternal Warden',
+    hp: 340,
+    atk: [3, 50],
+    gold: [1200, 3000],
+    xp: 4000,
+    img: '☠️',
+    minDepth: 20,
   },
 ];
 
@@ -286,87 +390,87 @@ const ENEMIES = [
 const BOSSES = [
   {
     depth: 10,
-    key: "guardian_idol",
-    name: "Guardian Idol",
+    key: 'guardian_idol',
+    name: 'Guardian Idol',
     hp: 230,
     atk: [5, 22],
     gold: [100, 2400],
     xp: 250,
-    img: "assets/guardianidolSVG.svg",
+    img: 'assets/guardianidolSVG.svg',
     drops: {
       // loot table (all optional)
       items: [
-        { key: "potion_greater", qty: 5, chance: 100 },
-        { key: "bomb_incendiary", qty: 3, chance: 100 },
+        { key: 'potion_greater', qty: 5, chance: 100 },
+        { key: 'bomb_incendiary', qty: 3, chance: 100 },
       ],
       weapons: [
-        { template: "knight_blade", powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
+        { template: 'knight_blade', powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
       ],
       shields: [
-        { template: "steel_heater", chance: 50 }, // must match a SHIELDS key
+        { template: 'steel_heater', chance: 50 }, // must match a SHIELDS key
       ],
     },
   },
   {
     depth: 20,
-    key: "abyssal_wyrmling",
-    name: "Abyssal Wyrmling",
+    key: 'abyssal_wyrmling',
+    name: 'Abyssal Wyrmling',
     hp: 300,
     atk: [3, 25],
     gold: [200, 3500],
     xp: 550,
-    img: "assets/abyssalwyrmSVG.svg",
+    img: 'assets/abyssalwyrmSVG.svg',
     drops: {
       items: [
-        { key: "potion_giga", qty: 5, chance: 100 },
-        { key: "bomb_incendiary", qty: 3, chance: 100 },
+        { key: 'potion_giga', qty: 5, chance: 100 },
+        { key: 'bomb_incendiary', qty: 3, chance: 100 },
       ],
 
       weapons: [
-        { template: "obsidian_falchion", powerFactor: 1.0, chance: 30 },
+        { template: 'obsidian_falchion', powerFactor: 1.0, chance: 30 },
       ],
-      shields: [{ template: "sunsteel_barrier", chance: 30 }],
+      shields: [{ template: 'sunsteel_barrier', chance: 30 }],
     },
   },
   {
     depth: 30,
-    key: "abyssal_wyrm",
-    name: "Abyssal Wyrm",
+    key: 'abyssal_wyrm',
+    name: 'Abyssal Wyrm',
     hp: 450,
     atk: [4, 35],
     gold: [500, 3500],
     xp: 750,
-    img: "assets/abyssalwyrmSVG.svg",
+    img: 'assets/abyssalwyrmSVG.svg',
     drops: {
       items: [
-        { key: "potion_giga", qty: 5, chance: 100 },
-        { key: "bomb_incendiary", qty: 3, chance: 100 },
+        { key: 'potion_giga', qty: 5, chance: 100 },
+        { key: 'bomb_incendiary', qty: 3, chance: 100 },
       ],
 
-      weapons: [{ template: "dragonfang", powerFactor: 1.0, chance: 50 }],
-      shields: [{ template: "crystal_ward", chance: 50 }],
+      weapons: [{ template: 'dragonfang', powerFactor: 1.0, chance: 50 }],
+      shields: [{ template: 'crystal_ward', chance: 50 }],
     },
   },
   {
     depth: 40,
-    key: "guardian_idol",
-    name: "Guardian Idol",
+    key: 'guardian_idol',
+    name: 'Guardian Idol',
     hp: 500,
     atk: [2, 40],
     gold: [1000, 5000],
     xp: 1000,
-    img: "assets/guardianidolSVG.svg",
+    img: 'assets/guardianidolSVG.svg',
     drops: {
       // loot table (all optional)
       items: [
-        { key: "potion_greater", qty: 10, chance: 100 },
-        { key: "bomb_incendiary", qty: 5, chance: 100 },
+        { key: 'potion_greater', qty: 10, chance: 100 },
+        { key: 'bomb_incendiary', qty: 5, chance: 100 },
       ],
       weapons: [
-        { template: "obsidian_falchion", powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
+        { template: 'obsidian_falchion', powerFactor: 1.0, chance: 50 }, // must match a SWORDS key
       ],
       shields: [
-        { template: "crystal_ward", chance: 50 }, // must match a SHIELDS key
+        { template: 'crystal_ward', chance: 50 }, // must match a SHIELDS key
       ],
     },
   },
@@ -377,131 +481,131 @@ const BOSSES = [
 const LOOT_TABLE = [
   // --- Healing ---
   {
-    key: "potion_minor",
-    name: "Minor Health Potion",
-    kind: "consumable",
+    key: 'potion_minor',
+    name: 'Minor Health Potion',
+    kind: 'consumable',
     heal: 8,
     price: 10,
   },
   {
-    key: "potion_small",
-    name: "Small Health Potion",
-    kind: "consumable",
+    key: 'potion_small',
+    name: 'Small Health Potion',
+    kind: 'consumable',
     heal: 12,
     price: 16,
   },
   {
-    key: "potion",
-    name: "Health Potion",
-    kind: "consumable",
+    key: 'potion',
+    name: 'Health Potion',
+    kind: 'consumable',
     heal: 15,
     price: 22,
   },
   {
-    key: "potion_strong",
-    name: "Strong Health Potion",
-    kind: "consumable",
+    key: 'potion_strong',
+    name: 'Strong Health Potion',
+    kind: 'consumable',
     heal: 25,
     price: 38,
   },
   {
-    key: "potion_greater",
-    name: "Greater Health Potion",
-    kind: "consumable",
+    key: 'potion_greater',
+    name: 'Greater Health Potion',
+    kind: 'consumable',
     heal: 35,
     price: 64,
   },
   {
-    key: "potion_giga",
-    name: "Giga Health Potion",
-    kind: "consumable",
+    key: 'potion_giga',
+    name: 'Giga Health Potion',
+    kind: 'consumable',
     heal: 50,
     price: 110,
   },
 
   // --- Explosives (more variety) ---
   {
-    key: "bomb_crude",
-    name: "Crude Bomb",
-    kind: "consumable",
+    key: 'bomb_crude',
+    name: 'Crude Bomb',
+    kind: 'consumable',
     dmg: 8,
     price: 22,
   },
-  { key: "bomb", name: "Bomb", kind: "consumable", dmg: 12, price: 40 },
+  { key: 'bomb', name: 'Bomb', kind: 'consumable', dmg: 12, price: 40 },
   {
-    key: "bomb_shrapnel",
-    name: "Shrapnel Bomb",
-    kind: "consumable",
+    key: 'bomb_shrapnel',
+    name: 'Shrapnel Bomb',
+    kind: 'consumable',
     dmg: 16,
     price: 55,
   },
   {
-    key: "bomb_toxic",
-    name: "Toxic Bomb",
-    kind: "consumable",
+    key: 'bomb_toxic',
+    name: 'Toxic Bomb',
+    kind: 'consumable',
     dmg: 20,
     price: 75,
   },
   {
-    key: "bomb_frost",
-    name: "Frost Bomb",
-    kind: "consumable",
+    key: 'bomb_frost',
+    name: 'Frost Bomb',
+    kind: 'consumable',
     dmg: 24,
     price: 90,
   },
   {
-    key: "bomb_incendiary",
-    name: "Incendiary Bomb",
-    kind: "consumable",
+    key: 'bomb_incendiary',
+    name: 'Incendiary Bomb',
+    kind: 'consumable',
     dmg: 28,
     price: 100,
   },
-  { key: "tnt", name: "TNT", kind: "consumable", dmg: 75, price: 120 },
+  { key: 'tnt', name: 'TNT', kind: 'consumable', dmg: 75, price: 120 },
 ];
 
 // Weapon templates — higher power => rarer (weights drop with atk), unlock by depth
 const SWORDS = [
   // --- Commons (Depth 1–2) ---
   {
-    key: "rusty_dagger",
-    name: "Rusty Dagger",
+    key: 'rusty_dagger',
+    name: 'Rusty Dagger',
     atk: 1,
     minDepth: 1,
     weight: 60,
   },
-  { key: "bent_shiv", name: "Bent Shiv", atk: 1, minDepth: 1, weight: 60 },
-  { key: "fire_poker", name: "Fire Poker", atk: 1, minDepth: 1, weight: 55 },
-  { key: "dusty_knife", name: "Dusty Knife", atk: 2, minDepth: 1, weight: 50 },
-  { key: "bone_shard", name: "Bone Shard", atk: 2, minDepth: 1, weight: 50 },
+  { key: 'bent_shiv', name: 'Bent Shiv', atk: 1, minDepth: 1, weight: 60 },
+  { key: 'fire_poker', name: 'Fire Poker', atk: 1, minDepth: 1, weight: 55 },
+  { key: 'dusty_knife', name: 'Dusty Knife', atk: 2, minDepth: 1, weight: 50 },
+  { key: 'bone_shard', name: 'Bone Shard', atk: 2, minDepth: 1, weight: 50 },
   {
-    key: "makeshift_dagger",
-    name: "Makeshift Dagger",
+    key: 'makeshift_dagger',
+    name: 'Makeshift Dagger',
     atk: 2,
     minDepth: 1,
     weight: 45,
   },
 
   // --- Uncommons (Depth 3–7) ---
-  { key: "short_sword", name: "Short Sword", atk: 3, minDepth: 3, weight: 40 },
-  { key: "bone_dagger", name: "Bone Dagger", atk: 3, minDepth: 3, weight: 35 },
-  { key: "iron_saber", name: "Iron Saber", atk: 3, minDepth: 4, weight: 30 },
+  { key: 'short_sword', name: 'Short Sword', atk: 3, minDepth: 3, weight: 40 },
+  { key: 'bone_dagger', name: 'Bone Dagger', atk: 3, minDepth: 3, weight: 35 },
+  { key: 'iron_saber', name: 'Iron Saber', atk: 3, minDepth: 4, weight: 30 },
   {
-    key: "bronze_gladius",
-    name: "Bronze Gladius",
+    key: 'bronze_gladius',
+    name: 'Bronze Gladius',
     atk: 4,
     minDepth: 5,
     weight: 25,
   },
   {
-    key: "serrated_kopis",
-    name: "Serrated Kopis",
+    key: 'serrated_kopis',
+    name: 'Serrated Kopis',
     atk: 4,
     minDepth: 6,
     weight: 22,
   },
   {
-    key: "steel_longsword",
-    name: "Steel Longsword",
+    key: 'steel_longsword',
+    name: 'Steel Longsword',
     atk: 4,
     minDepth: 7,
     weight: 18,
@@ -509,61 +613,61 @@ const SWORDS = [
 
   // --- Rares (Depth 9–13) ---
   {
-    key: "knight_blade",
-    name: "Knight Blade",
+    key: 'knight_blade',
+    name: 'Knight Blade',
     atk: 5,
     minDepth: 9,
     weight: 12,
   },
   {
-    key: "storm_rapier",
-    name: "Storm Rapier",
+    key: 'storm_rapier',
+    name: 'Storm Rapier',
     atk: 5,
     minDepth: 10,
     weight: 10,
   },
   {
-    key: "crystal_saber",
-    name: "Crystal Saber",
+    key: 'crystal_saber',
+    name: 'Crystal Saber',
     atk: 6,
     minDepth: 12,
     weight: 8,
   },
   {
-    key: "obsidian_falchion",
-    name: "Obsidian Falchion",
+    key: 'obsidian_falchion',
+    name: 'Obsidian Falchion',
     atk: 6,
     minDepth: 13,
     weight: 7,
   },
 
   // --- Epics (Depth 14+) ---
-  { key: "dragonfang", name: "Dragonfang", atk: 7, minDepth: 14, weight: 5 },
+  { key: 'dragonfang', name: 'Dragonfang', atk: 7, minDepth: 14, weight: 5 },
   {
-    key: "empyrean_sword",
-    name: "Empyrean Sword",
+    key: 'empyrean_sword',
+    name: 'Empyrean Sword',
     atk: 8,
     minDepth: 14, // moved from 1 to appropriate tier
     weight: 3,
   },
   {
-    key: "sunsteel_edge",
-    name: "Sunsteel Edge",
+    key: 'sunsteel_edge',
+    name: 'Sunsteel Edge',
     atk: 9,
     minDepth: 16,
     weight: 3,
   },
-  { key: "voidreaver", name: "Voidreaver", atk: 12, minDepth: 20, weight: 2 },
+  { key: 'voidreaver', name: 'Voidreaver', atk: 12, minDepth: 20, weight: 2 },
   {
-    key: "empyrean_greatsword",
-    name: "Empyrean Greatsword",
+    key: 'empyrean_greatsword',
+    name: 'Empyrean Greatsword',
     atk: 15,
     minDepth: 24,
     weight: 2,
   },
   {
-    key: "abyssal_whip",
-    name: "Abyssal Whip",
+    key: 'abyssal_whip',
+    name: 'Abyssal Whip',
     atk: 8,
     minDepth: 3,
     weight: 1,
@@ -572,80 +676,80 @@ const SWORDS = [
 
 const SHIELDS = [
   {
-    key: "wooden_shield",
-    name: "Wooden Shield",
+    key: 'wooden_shield',
+    name: 'Wooden Shield',
     def: 1,
     rollChance: 10,
     minDepth: 1,
     weight: 60,
   },
   {
-    key: "hide_kite",
-    name: "Hide Kite",
+    key: 'hide_kite',
+    name: 'Hide Kite',
     def: 2,
     rollChance: 12,
     minDepth: 2,
     weight: 45,
   },
   {
-    key: "bronze_roundel",
-    name: "Bronze Roundel",
+    key: 'bronze_roundel',
+    name: 'Bronze Roundel',
     def: 2,
     rollChance: 16,
     minDepth: 3,
     weight: 35,
   },
   {
-    key: "iron_targe",
-    name: "Iron Targe",
+    key: 'iron_targe',
+    name: 'Iron Targe',
     def: 3,
     rollChance: 18,
     minDepth: 5,
     weight: 28,
   },
   {
-    key: "steel_heater",
-    name: "Steel Heater",
+    key: 'steel_heater',
+    name: 'Steel Heater',
     def: 3,
     rollChance: 22,
     minDepth: 7,
     weight: 20,
   },
   {
-    key: "knights_wall",
-    name: "Knight’s Wall",
+    key: 'knights_wall',
+    name: 'Knight’s Wall',
     def: 4,
     rollChance: 24,
     minDepth: 9,
     weight: 14,
   },
   {
-    key: "obsidian_scutum",
-    name: "Obsidian Scutum",
+    key: 'obsidian_scutum',
+    name: 'Obsidian Scutum',
     def: 4,
     rollChance: 28,
     minDepth: 12,
     weight: 9,
   },
   {
-    key: "runed_aegis",
-    name: "Runed Aegis",
+    key: 'runed_aegis',
+    name: 'Runed Aegis',
     def: 5,
     rollChance: 30,
     minDepth: 15,
     weight: 6,
   },
   {
-    key: "crystal_ward",
-    name: "Crystal Ward",
+    key: 'crystal_ward',
+    name: 'Crystal Ward',
     def: 5,
     rollChance: 35,
     minDepth: 18,
     weight: 3,
   },
   {
-    key: "sunsteel_barrier",
-    name: "Sunsteel Barrier",
+    key: 'sunsteel_barrier',
+    name: 'Sunsteel Barrier',
     def: 6,
     rollChance: 40,
     minDepth: 22,
@@ -654,84 +758,84 @@ const SHIELDS = [
 ];
 
 const ROOM_TAGS = [
-  "Calm",
-  "Damp",
-  "Echoing",
-  "Dank",
-  "Fetid",
-  "Fungal",
-  "Icy",
-  "Gusty",
-  "Mossy",
-  "Dripping",
-  "Whispering",
-  "Gloomy",
-  "Stagnant",
-  "Claustrophobic",
-  "Crumbling",
-  "Ruined",
-  "Collapsed",
-  "Flooded",
-  "Silted",
-  "Frostbitten",
-  "Chill",
-  "Webbed",
-  "Infested",
-  "Ossuary",
-  "Bone-Littered",
-  "Mildewed",
-  "Moldy",
-  "Rot-Stained",
-  "Dust-Choked",
-  "Sulfurous",
-  "Miasmic",
-  "Smoky",
-  "Ashen",
-  "Scorched",
-  "Sooty",
-  "Crystalline",
-  "Shimmering",
-  "Phosphorescent",
-  "Bioluminescent",
-  "Arcane",
-  "Runed",
-  "Hexed",
-  "Cursed",
-  "Haunted",
-  "Spectral",
-  "Unholy",
-  "Sanctified",
-  "Ancient",
-  "Forgotten",
-  "Hidden",
-  "Labyrinthine",
-  "Twisting",
-  "Narrow",
-  "Broad",
-  "Eerie",
-  "Gloaming",
-  "Shadowed",
-  "Wind-Scoured",
-  "Seismic",
-  "Rumbling",
-  "Quaking",
-  "Verminous",
-  "Putrid",
-  "Stench-Ridden",
-  "Slick",
-  "Iridescent",
-  "Frozen",
-  "Ember-Lit",
-  "Torchlit",
-  "Starved of Light",
-  "Thunderous",
+  'Calm',
+  'Damp',
+  'Echoing',
+  'Dank',
+  'Fetid',
+  'Fungal',
+  'Icy',
+  'Gusty',
+  'Mossy',
+  'Dripping',
+  'Whispering',
+  'Gloomy',
+  'Stagnant',
+  'Claustrophobic',
+  'Crumbling',
+  'Ruined',
+  'Collapsed',
+  'Flooded',
+  'Silted',
+  'Frostbitten',
+  'Chill',
+  'Webbed',
+  'Infested',
+  'Ossuary',
+  'Bone-Littered',
+  'Mildewed',
+  'Moldy',
+  'Rot-Stained',
+  'Dust-Choked',
+  'Sulfurous',
+  'Miasmic',
+  'Smoky',
+  'Ashen',
+  'Scorched',
+  'Sooty',
+  'Crystalline',
+  'Shimmering',
+  'Phosphorescent',
+  'Bioluminescent',
+  'Arcane',
+  'Runed',
+  'Hexed',
+  'Cursed',
+  'Haunted',
+  'Spectral',
+  'Unholy',
+  'Sanctified',
+  'Ancient',
+  'Forgotten',
+  'Hidden',
+  'Labyrinthine',
+  'Twisting',
+  'Narrow',
+  'Broad',
+  'Eerie',
+  'Gloaming',
+  'Shadowed',
+  'Wind-Scoured',
+  'Seismic',
+  'Rumbling',
+  'Quaking',
+  'Verminous',
+  'Putrid',
+  'Stench-Ridden',
+  'Slick',
+  'Iridescent',
+  'Frozen',
+  'Ember-Lit',
+  'Torchlit',
+  'Starved of Light',
+  'Thunderous',
 ];
 
 // ------------------------------
 // Game State
 // ------------------------------
 const initialState = () => ({
-  name: "Adventurer",
+  name: 'Adventurer',
   depth: 1,
   level: 1,
   hp: 20,
@@ -740,7 +844,7 @@ const initialState = () => ({
   xpToNext: 10,
   gold: 0,
   // Inventory can contain consumables {key, qty} and weapons {key:'weapon', id, name, atk, rarity, price, source}
-  inventory: [{ key: "potion", qty: 1 }],
+  inventory: [{ key: 'potion', qty: 1 }],
   mapSize: 7,
   map: [],
   pos: { x: 3, y: 3 },
@@ -768,18 +872,18 @@ let __deathKeyHandler = null;
 // Utilities
 // ------------------------------
 const $ = (sel) => document.querySelector(sel);
-const logEl = $("#log");
+const logEl = $('#log');
 
 function addLog(html, cls) {
-  const p = document.createElement("p");
+  const p = document.createElement('p');
   if (cls) p.className = cls;
   p.innerHTML = html;
   logEl.appendChild(p);
   logEl.scrollTop = logEl.scrollHeight;
 }
 function addCombatLog(html, cls) {
-  const box = $("#combatLog");
-  const p = document.createElement("p");
+  const box = $('#combatLog');
+  const p = document.createElement('p');
   if (cls) p.className = cls;
   p.innerHTML = html;
   box.appendChild(p);
@@ -787,9 +891,9 @@ function addCombatLog(html, cls) {
 }
 
 function uid() {
-  return "w" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return 'w' + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
-function weightedPick(items, weightKey = "weight") {
+function weightedPick(items, weightKey = 'weight') {
   const total = items.reduce((s, it) => s + (it[weightKey] || 0), 0);
   if (!total) return items[0];
   let r = Math.random() * total;
@@ -802,14 +906,14 @@ function weightedPick(items, weightKey = "weight") {
 function sanitizeState() {
   if (!S) S = initialState();
 
-  if (!S.equipped || typeof S.equipped !== "object")
+  if (!S.equipped || typeof S.equipped !== 'object')
     S.equipped = { weapon: null, shield: null };
-  if (!("weapon" in S.equipped)) S.equipped.weapon = null;
-  if (!("shield" in S.equipped)) S.equipped.shield = null; // ← ensure shield
-  if (typeof S.restsThisFloor !== "number") S.restsThisFloor = 0;
+  if (!('weapon' in S.equipped)) S.equipped.weapon = null;
+  if (!('shield' in S.equipped)) S.equipped.shield = null; // ← ensure shield
+  if (typeof S.restsThisFloor !== 'number') S.restsThisFloor = 0;
 
-  if (typeof S.traderCooldown !== "number") S.traderCooldown = 0;
-  if (typeof S.scoutCharges !== "number") S.scoutCharges = 0;
+  if (typeof S.traderCooldown !== 'number') S.traderCooldown = 0;
+  if (typeof S.scoutCharges !== 'number') S.scoutCharges = 0;
 
   if (!Array.isArray(S.inventory)) S.inventory = [];
   if (!S.mapSize) S.mapSize = 7;
@@ -821,7 +925,7 @@ function sanitizeState() {
 
   if (
     S.enemy &&
-    (typeof S.enemy.hp !== "number" || !Array.isArray(S.enemy.atk))
+    (typeof S.enemy.hp !== 'number' || !Array.isArray(S.enemy.atk))
   ) {
     S.enemy = null;
   }
@@ -849,7 +953,7 @@ function shopWeaponPrice(atk) {
 }
 
 // Helper: pick N unique templates with weighting
-function pickUniqueWeighted(pool, count, weightKey = "weight") {
+function pickUniqueWeighted(pool, count, weightKey = 'weight') {
   const available = [...pool];
   const picks = [];
   for (let i = 0; i < count && available.length > 0; i++) {
@@ -879,7 +983,7 @@ function startBossEncounter(depth) {
   const boss = getBossForDepth(depth);
   boss.isBoss = true; // tag so defeat handler knows it's a boss
   S.enemy = boss;
-  setEncounterStatus("Boss!");
+  setEncounterStatus('Boss!');
   openCombat(
     `A <strong>${boss.name}</strong> towers before you! (HP ${boss.hp})`
   );
@@ -898,7 +1002,7 @@ function handleBossDrops(boss) {
         const meta = LOOT_TABLE.find((l) => l.key === it.key);
         addLog(
           `Boss drops <strong>${meta?.name || it.key}</strong> x${qty}.`,
-          "good"
+          'good'
         );
       }
     });
@@ -912,11 +1016,11 @@ function handleBossDrops(boss) {
         const tpl = SWORDS.find((s) => s.key === dw.template);
         if (tpl) {
           const pf = dw.powerFactor ?? 1.0;
-          const w = makeWeaponFromTemplate(tpl, "drop", pf);
+          const w = makeWeaponFromTemplate(tpl, 'drop', pf);
           addWeapon(w);
           addLog(
             `Boss drops <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
-            "good"
+            'good'
           );
         }
       }
@@ -930,11 +1034,11 @@ function handleBossDrops(boss) {
       if (RNG.chance(chance)) {
         const tpl = SHIELDS.find((s) => s.key === ds.template);
         if (tpl) {
-          const sh = makeShieldFromTemplate(tpl, "drop");
+          const sh = makeShieldFromTemplate(tpl, 'drop');
           addShield(sh);
           addLog(
             `Boss drops <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
-            "good"
+            'good'
           );
         }
       }
@@ -944,10 +1048,10 @@ function handleBossDrops(boss) {
 
 // Glimmer effect
 function flashGlimmer() {
-  const fx = document.getElementById("fx");
-  fx?.classList.remove("glimmer");
+  const fx = document.getElementById('fx');
+  fx?.classList.remove('glimmer');
   void fx?.offsetWidth; // restart animation
-  fx?.classList.add("glimmer");
+  fx?.classList.add('glimmer');
 }
 
 // ------------------------------
@@ -959,27 +1063,27 @@ function flashGlimmer() {
 // Safely compute current multipliers even if lobby/meta helpers aren't present yet
 function __computeMultipliers() {
   const meta =
-    typeof META !== "undefined" && META && META.upgrades ? META.upgrades : {};
+    typeof META !== 'undefined' && META && META.upgrades ? META.upgrades : {};
 
   const xpMult =
-    typeof getXpMult === "function"
+    typeof getXpMult === 'function'
       ? getXpMult()
       : Math.min(2.0, 1 + 0.1 * (meta.xpMult || 0));
 
   const goldMult =
-    typeof getGoldMult === "function"
+    typeof getGoldMult === 'function'
       ? getGoldMult()
       : Math.min(1.5, 1 + 0.1 * (meta.goldMult || 0));
 
   // Vitality: healing boost only (maxHP bonus is static; we show the multiplier here)
   const healPct =
-    typeof getVitalityHealBonusPct === "function"
+    typeof getVitalityHealBonusPct === 'function'
       ? getVitalityHealBonusPct()
       : 5 * (meta.vitality || 0); // % value, e.g., 10 => +10%
 
   // Explorer: we display “+N” bonus pulses (not total)
   const scoutBonus =
-    typeof getScoutPerFloor === "function"
+    typeof getScoutPerFloor === 'function'
       ? Math.max(0, (getScoutPerFloor() || 0) - 1) // if your getter returns total-per-floor
       : meta.explorer || 0; // else treat stored tier as bonus
 
@@ -987,27 +1091,27 @@ function __computeMultipliers() {
 }
 
 function ensureMetaPill() {
-  let pill = document.getElementById("metaPill");
+  let pill = document.getElementById('metaPill');
   if (pill) return pill;
 
-  pill = document.createElement("div");
-  pill.id = "metaPill";
-  pill.title = "Current run modifiers";
+  pill = document.createElement('div');
+  pill.id = 'metaPill';
+  pill.title = 'Current run modifiers';
   Object.assign(pill.style, {
-    position: "fixed",
-    right: "10px",
-    bottom: "10px",
-    zIndex: "9999",
-    padding: "6px 10px",
-    borderRadius: "999px",
-    border: "1px solid #263774",
-    background: "linear-gradient(180deg, #0a0f1f, #070a15)",
-    color: "#e8edff",
-    fontFamily: "inherit",
-    fontSize: "12px",
-    lineHeight: "1",
-    boxShadow: "0 8px 24px rgba(0,0,0,.35)",
-    opacity: "0.95",
+    position: 'fixed',
+    right: '10px',
+    bottom: '10px',
+    zIndex: '9999',
+    padding: '6px 10px',
+    borderRadius: '999px',
+    border: '1px solid #263774',
+    background: 'linear-gradient(180deg, #0a0f1f, #070a15)',
+    color: '#e8edff',
+    fontFamily: 'inherit',
+    fontSize: '12px',
+    lineHeight: '1',
+    boxShadow: '0 8px 24px rgba(0,0,0,.35)',
+    opacity: '0.95',
   });
 
   document.body.appendChild(pill);
@@ -1023,90 +1127,90 @@ function renderMetaPill() {
   if (xpMult && xpMult !== 1) parts.push(`⚡ XP×${xpMult.toFixed(2)}`);
   if (goldMult && goldMult !== 1) parts.push(`💰 Gold×${goldMult.toFixed(2)}`);
   if (healPct && healPct > 0) parts.push(`✚ Heal+${healPct}%`);
-  if (typeof scoutBonus === "number" && scoutBonus > 0)
+  if (typeof scoutBonus === 'number' && scoutBonus > 0)
     parts.push(`🧭 Scout+${scoutBonus}`);
 
   if (parts.length === 0) {
-    pill.style.display = "none"; // nothing special active
+    pill.style.display = 'none'; // nothing special active
   } else {
-    pill.textContent = parts.join(" • ");
-    pill.style.display = "inline-block";
+    pill.textContent = parts.join(' • ');
+    pill.style.display = 'inline-block';
   }
 }
 
 function setBar(el, val, max, textEl) {
   const pct = Math.max(0, Math.min(100, Math.round((val / max) * 100)));
-  el.style.setProperty("--val", pct + "%");
+  el.style.setProperty('--val', pct + '%');
   if (textEl) textEl.textContent = `${val}/${max}`;
 }
 
 function updateScoutUI() {
-  const pill = document.getElementById("scoutPill");
+  const pill = document.getElementById('scoutPill');
   if (pill) pill.textContent = `Scout: ${S.scoutCharges}`;
-  const btn = document.getElementById("actScout");
+  const btn = document.getElementById('actScout');
   if (btn) btn.disabled = S.scoutCharges <= 0;
 }
 
 function renderStats() {
-  setBar($("#hpBar"), S.hp, S.maxHp, $("#hpText"));
-  setBar($("#xpBar"), S.xp, S.xpToNext, $("#xpText"));
-  $("#goldPill").textContent = `Gold: ${S.gold}`;
-  $("#levelPill").textContent = `Lvl ${S.level}`;
-  $("#playerName").textContent = S.name;
-  $("#depthPill").textContent = `Delve ${S.depth}`;
-  if (S.enemy) $("#combatEnemyHp").textContent = `HP ${S.enemy.hp}`;
-  $("#shopGold").textContent = `Gold: ${S.gold}`;
-  $("#invGold").textContent = `Gold: ${S.gold}`;
+  setBar($('#hpBar'), S.hp, S.maxHp, $('#hpText'));
+  setBar($('#xpBar'), S.xp, S.xpToNext, $('#xpText'));
+  $('#goldPill').textContent = `Gold: ${S.gold}`;
+  $('#levelPill').textContent = `Lvl ${S.level}`;
+  $('#playerName').textContent = S.name;
+  $('#depthPill').textContent = `Delve ${S.depth}`;
+  if (S.enemy) $('#combatEnemyHp').textContent = `HP ${S.enemy.hp}`;
+  $('#shopGold').textContent = `Gold: ${S.gold}`;
+  $('#invGold').textContent = `Gold: ${S.gold}`;
 
   updateScoutUI();
 
   // --- Mini HUD mirrors (only present on mobile; safe to no-op if missing)
-  const miniHpBar = document.getElementById("miniHpBar");
+  const miniHpBar = document.getElementById('miniHpBar');
   if (miniHpBar)
-    setBar(miniHpBar, S.hp, S.maxHp, document.getElementById("miniHpText"));
-  const miniXpBar = document.getElementById("miniXpBar");
+    setBar(miniHpBar, S.hp, S.maxHp, document.getElementById('miniHpText'));
+  const miniXpBar = document.getElementById('miniXpBar');
   if (miniXpBar)
-    setBar(miniXpBar, S.xp, S.xpToNext, document.getElementById("miniXpText"));
+    setBar(miniXpBar, S.xp, S.xpToNext, document.getElementById('miniXpText'));
 }
 
 function renderInventory() {
-  const wrap = $("#inventory");
-  wrap.innerHTML = "";
+  const wrap = $('#inventory');
+  wrap.innerHTML = '';
   S.inventory.forEach((it) => {
     const meta = LOOT_TABLE.find((l) => l.key === it.key);
-    const div = document.createElement("div");
-    div.className = "item";
+    const div = document.createElement('div');
+    div.className = 'item';
 
     if (meta) {
       div.innerHTML = `<span>• ${meta.name}</span> <small>x${it.qty}</small>`;
-      div.style.cursor = "pointer";
+      div.style.cursor = 'pointer';
       div.title = `Click to use 1 ${meta.name}`;
-      div.addEventListener("click", () => useSpecificItem(it.key));
-    } else if (it.key === "weapon") {
+      div.addEventListener('click', () => useSpecificItem(it.key));
+    } else if (it.key === 'weapon') {
       const equippedMark =
         S.equipped?.weapon && S.equipped.weapon.id === it.id
-          ? " <small>(E)</small>"
-          : "";
+          ? ' <small>(E)</small>'
+          : '';
       div.innerHTML = `<span>🗡️ ${it.name} <small>+${it.atk} • ${it.rarity}${equippedMark}</small></span>`;
-      div.style.cursor = "pointer";
-      div.title = "Click to equip";
+      div.style.cursor = 'pointer';
+      div.title = 'Click to equip';
       div.tabIndex = 0;
-      div.addEventListener("click", () => equipWeaponById(it.id));
-      div.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") equipWeaponById(it.id);
+      div.addEventListener('click', () => equipWeaponById(it.id));
+      div.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') equipWeaponById(it.id);
       });
-    } else if (it.key === "shield") {
+    } else if (it.key === 'shield') {
       const equippedMark =
         S.equipped?.shield && S.equipped.shield.id === it.id
-          ? " <small>(E)</small>"
-          : "";
+          ? ' <small>(E)</small>'
+          : '';
       div.innerHTML = `<span>🛡️ ${it.name} <small>${it.def} DEF • ${it.rollChance}% • ${it.rarity}${equippedMark}</small></span>`;
-      div.style.cursor = "pointer";
-      div.title = "Click to equip shield";
+      div.style.cursor = 'pointer';
+      div.title = 'Click to equip shield';
       div.tabIndex = 0;
-      div.addEventListener("click", () => equipShieldById(it.id));
-      div.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") equipShieldById(it.id);
+      div.addEventListener('click', () => equipShieldById(it.id));
+      div.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') equipShieldById(it.id);
       });
     } else {
       div.textContent = it.key;
@@ -1114,7 +1218,7 @@ function renderInventory() {
 
     wrap.appendChild(div);
   });
-  if (!S.inventory.length) wrap.textContent = "(Empty)";
+  if (!S.inventory.length) wrap.textContent = '(Empty)';
 }
 
 function ensureMap() {
@@ -1129,103 +1233,103 @@ function ensureMap() {
 
 function renderMap() {
   ensureMap();
-  const g = $("#map");
-  g.innerHTML = "";
+  const g = $('#map');
+  g.innerHTML = '';
   for (let y = 0; y < S.mapSize; y++) {
     for (let x = 0; x < S.mapSize; x++) {
-      const d = document.createElement("div");
-      d.className = "cell";
-      if (S.map[y][x]) d.classList.add("discovered");
-      if (x === S.pos.x && y === S.pos.y) d.classList.add("player");
+      const d = document.createElement('div');
+      d.className = 'cell';
+      if (S.map[y][x]) d.classList.add('discovered');
+      if (x === S.pos.x && y === S.pos.y) d.classList.add('player');
       // Only show exit if discovered
       if (S.exitDiscovered && x === S.exitPos.x && y === S.exitPos.y)
-        d.classList.add("exit");
+        d.classList.add('exit');
       g.appendChild(d);
     }
   }
 }
 
 function setEncounterStatus(text) {
-  $("#encounterPill").textContent = text;
+  $('#encounterPill').textContent = text;
 }
 
 function setRoom() {
   const ROOM_NAMES = [
-    "Dank Passage",
-    "Mossy Archway",
-    "Collapsed Hall",
-    "Silent Crypt",
-    "Crystal Cavern",
-    "Forgotten Library",
-    "Shimmering Tunnel",
-    "Broken Bridge",
-    "Abandoned Barracks",
-    "Sealed Vault",
-    "Forgotten Armory",
-    "Dust-Choked Stacks",
-    "Sarcophagus Row",
-    "Ossuary Niche",
-    "Ghoul Warren",
-    "Spider Den",
-    "Mushroom Grotto",
-    "Glowworm Hollow",
-    "Phosphor Cavern",
-    "Bioluminescent Pool",
-    "Dripping Gallery",
-    "Whispering Hall",
-    "Hall of Echoes",
-    "Howling Vent",
-    "Flooded Tunnel",
-    "Sunken Archive",
-    "Drowned Chapel",
-    "Rotted Sluice",
-    "Stagnant Cistern",
-    "Collapsed Aqueduct",
-    "Cracked Causeway",
-    "Broken Stair",
-    "Rift Walk",
-    "Seismic Fissure",
-    "Rubble Ramp",
-    "Shattered Sanctum",
-    "Desecrated Shrine",
-    "Black Altar",
-    "Runesmith’s Forge",
-    "Ashen Furnace",
-    "Soot-Stained Chimney",
-    "Obsidian Gallery",
-    "Vein of Crystal",
-    "Quarry Cut",
-    "Mosaic Rotunda",
-    "Timeworn Rotunda",
-    "Hidden Antechamber",
-    "Secret Pantry",
-    "Servants’ Passage",
-    "Supply Cache",
-    "Prospector’s Camp",
-    "Miner’s Rest",
-    "Collapsed Shaft",
-    "Rust Gate",
-    "Iron Portcullis",
-    "Warden’s Watch",
-    "Jailor’s Gallery",
-    "Chainworks",
-    "Wardstone Ring",
-    "Arcane Observatory",
-    "Star Chamber",
-    "Chill Refectory",
-    "Frostbitten Corridor",
-    "Bonepile Crossing",
-    "Gallows Landing",
-    "Worm-Tunnel",
-    "Slime Channel",
-    "Chittering Nest",
-    "Thorn Pit",
-    "Gloomed Nave",
-    "Runed Threshold",
-    "Echoing Narthex",
+    'Dank Passage',
+    'Mossy Archway',
+    'Collapsed Hall',
+    'Silent Crypt',
+    'Crystal Cavern',
+    'Forgotten Library',
+    'Shimmering Tunnel',
+    'Broken Bridge',
+    'Abandoned Barracks',
+    'Sealed Vault',
+    'Forgotten Armory',
+    'Dust-Choked Stacks',
+    'Sarcophagus Row',
+    'Ossuary Niche',
+    'Ghoul Warren',
+    'Spider Den',
+    'Mushroom Grotto',
+    'Glowworm Hollow',
+    'Phosphor Cavern',
+    'Bioluminescent Pool',
+    'Dripping Gallery',
+    'Whispering Hall',
+    'Hall of Echoes',
+    'Howling Vent',
+    'Flooded Tunnel',
+    'Sunken Archive',
+    'Drowned Chapel',
+    'Rotted Sluice',
+    'Stagnant Cistern',
+    'Collapsed Aqueduct',
+    'Cracked Causeway',
+    'Broken Stair',
+    'Rift Walk',
+    'Seismic Fissure',
+    'Rubble Ramp',
+    'Shattered Sanctum',
+    'Desecrated Shrine',
+    'Black Altar',
+    'Runesmith’s Forge',
+    'Ashen Furnace',
+    'Soot-Stained Chimney',
+    'Obsidian Gallery',
+    'Vein of Crystal',
+    'Quarry Cut',
+    'Mosaic Rotunda',
+    'Timeworn Rotunda',
+    'Hidden Antechamber',
+    'Secret Pantry',
+    'Servants’ Passage',
+    'Supply Cache',
+    'Prospector’s Camp',
+    'Miner’s Rest',
+    'Collapsed Shaft',
+    'Rust Gate',
+    'Iron Portcullis',
+    'Warden’s Watch',
+    'Jailor’s Gallery',
+    'Chainworks',
+    'Wardstone Ring',
+    'Arcane Observatory',
+    'Star Chamber',
+    'Chill Refectory',
+    'Frostbitten Corridor',
+    'Bonepile Crossing',
+    'Gallows Landing',
+    'Worm-Tunnel',
+    'Slime Channel',
+    'Chittering Nest',
+    'Thorn Pit',
+    'Gloomed Nave',
+    'Runed Threshold',
+    'Echoing Narthex',
   ];
-  $("#roomTitle").textContent = RNG.pick(ROOM_NAMES);
-  $("#roomTags").textContent = RNG.pick(ROOM_TAGS);
+  $('#roomTitle').textContent = RNG.pick(ROOM_NAMES);
+  $('#roomTags').textContent = RNG.pick(ROOM_TAGS);
 }
 
 function refreshUI() {
@@ -1260,21 +1364,21 @@ function checkExitContact() {
   if (S.pos.x === S.exitPos.x && S.pos.y === S.exitPos.y) {
     if (!S.exitDiscovered) {
       S.exitDiscovered = true;
-      addLog("You discover a hidden stairwell <strong>★</strong>!", "good");
+      addLog('You discover a hidden stairwell <strong>★</strong>!', 'good');
       renderMap();
     }
 
     // Event modal instead of confirm
     openEventModal({
-      title: "Hidden Stairwell",
-      img: "assets/stairsSVG.svg",
+      title: 'Hidden Stairwell',
+      img: 'assets/stairsSVG.svg',
       html: `Descend to <strong>Depth ${
         S.depth + 1
       }</strong>? Who knows what lurks below.`,
-      primaryText: "Descend",
-      secondaryText: "Stay Here",
+      primaryText: 'Descend',
+      secondaryText: 'Stay Here',
       onPrimary: () => descend(),
-      onSecondary: () => addLog("You decide to explore a bit longer."),
+      onSecondary: () => addLog('You decide to explore a bit longer.'),
     });
 
     return true;
@@ -1306,14 +1410,14 @@ function descend() {
   if (S.scoutCharges > 0)
     addLog(
       `<small>[Scout charges refreshed: ${S.scoutCharges}]</small>`,
-      "good"
+      'good'
     );
 
   addLog(
     isBossFloor(S.depth)
       ? `<em>You descend to Depth ${S.depth}… A vast presence fills the air.</em>`
       : `<em>You descend to Depth ${S.depth}…</em>`,
-    "good"
+    'good'
   );
 
   renderMap();
@@ -1324,7 +1428,7 @@ function descend() {
   if (isBossFloor(S.depth)) {
     startBossEncounter(S.depth);
   } else {
-    setEncounterStatus("Idle");
+    setEncounterStatus('Idle');
   }
 }
 
@@ -1356,7 +1460,7 @@ function addWeapon(weapon) {
   renderStats();
 }
 function removeWeaponById(id) {
-  const idx = S.inventory.findIndex((i) => i.key === "weapon" && i.id === id);
+  const idx = S.inventory.findIndex((i) => i.key === 'weapon' && i.id === id);
   if (idx >= 0) {
     S.inventory.splice(idx, 1);
     renderInventory();
@@ -1366,7 +1470,7 @@ function removeWeaponById(id) {
   return false;
 }
 function equipWeaponById(id) {
-  const w = S.inventory.find((i) => i.key === "weapon" && i.id === id);
+  const w = S.inventory.find((i) => i.key === 'weapon' && i.id === id);
   if (!w) return;
   // swap
   if (S.equipped.weapon) {
@@ -1376,53 +1480,53 @@ function equipWeaponById(id) {
   removeWeaponById(id);
   addLog(
     `You equip <strong>${w.name}</strong> <span class="good">(+${w.atk} ATK)</span>.`,
-    "good"
+    'good'
   );
   renderInventory();
   renderStats();
 }
 
 // ---- Shield Pricing (single version; pass rollChance) ----
-function priceForShield(def, rollChance, source = "drop") {
+function priceForShield(def, rollChance, source = 'drop') {
   // Expected mitigation scales value: def × (chance%)
   const eff = def * (rollChance / 100);
-  return source === "shop"
+  return source === 'shop'
     ? Math.round(60 + eff * 140 + S.depth * 12) // pricier in shops + depth
     : Math.round(30 + eff * 90 + Math.max(0, S.depth - 1) * 8); // drop value
 }
 
 // app.js — REPLACE your openInventoryModal() with this
 function openInventoryModal() {
-  const m = document.getElementById("invModal");
-  const list = document.getElementById("invList");
+  const m = document.getElementById('invModal');
+  const list = document.getElementById('invList');
   if (!m || !list) return;
-  list.innerHTML = "";
-  if (!S.inventory.length) list.innerHTML = "<p>(Inventory empty)</p>";
+  list.innerHTML = '';
+  if (!S.inventory.length) list.innerHTML = '<p>(Inventory empty)</p>';
 
   S.inventory.forEach((it) => {
     const meta = LOOT_TABLE.find((x) => x.key === it.key);
     if (meta) {
-      const row = document.createElement("p");
+      const row = document.createElement('p');
       row.innerHTML = `<strong>${meta.name}</strong> x${it.qty}`;
-      const btn = document.createElement("button");
+      const btn = document.createElement('button');
       btn.textContent = `Use ${meta.name} x1`;
-      btn.addEventListener("click", () => useSpecificItem(it.key));
+      btn.addEventListener('click', () => useSpecificItem(it.key));
       list.appendChild(row);
       list.appendChild(btn);
-    } else if (it.key === "weapon") {
-      const row = document.createElement("p");
+    } else if (it.key === 'weapon') {
+      const row = document.createElement('p');
       row.innerHTML = `<strong>🗡️ ${it.name}</strong> <small>+${it.atk} • ${it.rarity}</small>`;
-      const btn = document.createElement("button");
-      btn.textContent = "Equip";
-      btn.addEventListener("click", () => equipWeaponById(it.id));
+      const btn = document.createElement('button');
+      btn.textContent = 'Equip';
+      btn.addEventListener('click', () => equipWeaponById(it.id));
       list.appendChild(row);
       list.appendChild(btn);
-    } else if (it.key === "shield") {
-      const row = document.createElement("p");
+    } else if (it.key === 'shield') {
+      const row = document.createElement('p');
       row.innerHTML = `<strong>🛡️ ${it.name}</strong> <small>${it.def} DEF • ${it.rollChance}% • ${it.rarity}</small>`;
-      const btn = document.createElement("button");
-      btn.textContent = "Equip";
-      btn.addEventListener("click", () => equipShieldById(it.id));
+      const btn = document.createElement('button');
+      btn.textContent = 'Equip';
+      btn.addEventListener('click', () => equipShieldById(it.id));
       list.appendChild(row);
       list.appendChild(btn);
     }
@@ -1446,14 +1550,14 @@ function useSpecificItem(key) {
   if (!meta) return;
 
   // --- Healers: any item with a numeric "heal"
-  if (typeof meta.heal === "number") {
+  if (typeof meta.heal === 'number') {
     if (removeItem(key, 1)) {
       const heal = Math.ceil(meta.heal * getHealMult());
       S.hp = Math.min(S.maxHp, S.hp + heal);
       const msg = `You drink ${meta.name} and restore <span class="good">${heal} HP</span>.`;
-      addLog(msg, "good");
-      if (document.getElementById("combatModal")?.open)
-        addCombatLog(msg, "good");
+      addLog(msg, 'good');
+      if (document.getElementById('combatModal')?.open)
+        addCombatLog(msg, 'good');
       renderStats();
       if (S.enemy) enemyAttack();
     }
@@ -1461,9 +1565,9 @@ function useSpecificItem(key) {
   }
 
   // --- Explosives: any item with a numeric "dmg"
-  if (typeof meta.dmg === "number") {
+  if (typeof meta.dmg === 'number') {
     if (!S.enemy) {
-      addLog("You consider lighting it… but decide against it.");
+      addLog('You consider lighting it… but decide against it.');
       return;
     }
     if (removeItem(key, 1)) {
@@ -1478,17 +1582,17 @@ function useSpecificItem(key) {
         if (S.enemy.isBoss) {
           addCombatLog(
             `The ${S.enemy.name} is obliterated! <span class="good">${gold}g</span> scooped.`,
-            "good"
+            'good'
           );
           gainGold(gold);
           gainXP(xp);
           handleBossDrops(S.enemy);
           S.enemy = null;
-          setEncounterStatus("Idle");
+          setEncounterStatus('Idle');
           closeCombat();
           addLog(
-            "<em>With the guardian fallen, a path below reveals itself…</em>",
-            "good"
+            '<em>With the guardian fallen, a path below reveals itself…</em>',
+            'good'
           );
           descend();
           return;
@@ -1497,12 +1601,12 @@ function useSpecificItem(key) {
         // Normal enemy defeat flow (no boss)
         addCombatLog(
           `The ${S.enemy.name} is obliterated! <span class="good">${gold}g</span> scooped.`,
-          "good"
+          'good'
         );
         gainGold(gold);
         gainXP(xp);
         S.enemy = null;
-        setEncounterStatus("Idle");
+        setEncounterStatus('Idle');
         closeCombat();
       } else {
         enemyAttack();
@@ -1518,28 +1622,28 @@ function useSpecificItem(key) {
 // ------------------------------
 // Weapons: Drops & Shop variants
 // ------------------------------
-function priceForWeapon(atk, source = "drop") {
-  return source === "shop"
+function priceForWeapon(atk, source = 'drop') {
+  return source === 'shop'
     ? 50 + atk * 40 + S.depth * 10
     : 25 + atk * 25 + Math.max(0, S.depth - 1) * 6;
 }
 function rarityName(atk) {
   return atk >= 7
-    ? "epic"
+    ? 'epic'
     : atk >= 5
-    ? "rare"
+    ? 'rare'
     : atk >= 3
-    ? "uncommon"
-    : "common";
+    ? 'uncommon'
+    : 'common';
 }
 function pickDropWeapon() {
   const c = SWORDS.filter((w) => w.minDepth <= S.depth);
   return weightedPick(c);
 }
-function makeWeaponFromTemplate(tpl, source = "drop", powerFactor = 1) {
+function makeWeaponFromTemplate(tpl, source = 'drop', powerFactor = 1) {
   const atk = Math.max(1, Math.floor(tpl.atk * powerFactor));
   return {
-    key: "weapon",
+    key: 'weapon',
     id: uid(),
     name: tpl.name,
     atk,
@@ -1551,11 +1655,11 @@ function makeWeaponFromTemplate(tpl, source = "drop", powerFactor = 1) {
 function maybeDropWeapon() {
   if (!RNG.chance(DROP_RATES.weapon)) return;
   const tpl = pickDropWeapon();
-  const w = makeWeaponFromTemplate(tpl, "drop", 1);
+  const w = makeWeaponFromTemplate(tpl, 'drop', 1);
   addWeapon(w);
   addLog(
     `You find a <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>!`,
-    "good"
+    'good'
   );
   flashGlimmer();
 }
@@ -1565,20 +1669,20 @@ function maybeDropWeapon() {
 // ==============================
 function rarityNameShield(def) {
   return def >= 5
-    ? "epic"
+    ? 'epic'
     : def >= 3
-    ? "rare"
+    ? 'rare'
     : def >= 2
-    ? "uncommon"
-    : "common";
+    ? 'uncommon'
+    : 'common';
 }
 function pickDropShield() {
   const pool = SHIELDS.filter((s) => s.minDepth <= S.depth);
   return weightedPick(pool.length ? pool : SHIELDS);
 }
-function makeShieldFromTemplate(tpl, source = "drop") {
+function makeShieldFromTemplate(tpl, source = 'drop') {
   return {
-    key: "shield",
+    key: 'shield',
     id: uid(),
     name: tpl.name,
     def: tpl.def,
@@ -1594,7 +1698,7 @@ function addShield(sh) {
   renderStats();
 }
 function removeShieldById(id) {
-  const idx = S.inventory.findIndex((i) => i.key === "shield" && i.id === id);
+  const idx = S.inventory.findIndex((i) => i.key === 'shield' && i.id === id);
   if (idx >= 0) {
     S.inventory.splice(idx, 1);
     renderInventory();
@@ -1604,14 +1708,14 @@ function removeShieldById(id) {
   return false;
 }
 function equipShieldById(id) {
-  const sh = S.inventory.find((i) => i.key === "shield" && i.id === id);
+  const sh = S.inventory.find((i) => i.key === 'shield' && i.id === id);
   if (!sh) return;
   if (S.equipped.shield) S.inventory.push(S.equipped.shield); // swap out
   S.equipped.shield = sh;
   removeShieldById(id);
   addLog(
     `You equip <strong>${sh.name}</strong> <span class="good">(${sh.def} DEF • ${sh.rollChance}% block)</span>.`,
-    "good"
+    'good'
   );
   renderInventory();
   renderStats();
@@ -1619,11 +1723,11 @@ function equipShieldById(id) {
 function maybeDropShield() {
   if (!RNG.chance(DROP_RATES.shield)) return;
   const tpl = pickDropShield();
-  const sh = makeShieldFromTemplate(tpl, "drop");
+  const sh = makeShieldFromTemplate(tpl, 'drop');
   addShield(sh);
   addLog(
     `You find a <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>!`,
-    "good"
+    'good'
   );
   flashGlimmer();
 }
@@ -1646,7 +1750,7 @@ function pickEnemyBiased(depth) {
   // This lets big elites enter the pool once you're past their minDepth,
   // without opening the floodgates to absolutely everything.
   const hpGate = 10 + depth * 18; // was *4; loosened so 300–350 HP can appear by mid-teens
-  const eliteKeys = new Set(["tumeken", "nightmare"]); // always allow these at/after minDepth
+  const eliteKeys = new Set(['tumeken', 'nightmare']); // always allow these at/after minDepth
 
   const byScale = byDepth.filter(
     (e) =>
@@ -1669,7 +1773,7 @@ function pickEnemyBiased(depth) {
     return { ...e, weight: w };
   });
 
-  const choice = weightedPick(weightedPool, "weight");
+  const choice = weightedPick(weightedPool, 'weight');
   const { weight, ...enemy } = choice;
   return clone(enemy);
 }
@@ -1677,7 +1781,7 @@ function pickEnemyBiased(depth) {
 function gainXP(x) {
   x = Math.max(1, Math.floor(x * getXpMult()));
   S.xp += x;
-  addLog(`You gain <span class="good">${x} XP</span>.`, "good");
+  addLog(`You gain <span class="good">${x} XP</span>.`, 'good');
   while (S.xp >= S.xpToNext) {
     S.xp -= S.xpToNext;
     S.level++;
@@ -1686,7 +1790,7 @@ function gainXP(x) {
     S.xpToNext = Math.round(S.xpToNext * 1.35);
     addLog(
       `<strong>Level Up!</strong> You are now <span class="good">Lv. ${S.level}</span>.`,
-      "good"
+      'good'
     );
   }
   renderStats();
@@ -1710,79 +1814,79 @@ let __eventModal = null;
 function ensureEventModal() {
   if (__eventModal) return __eventModal;
 
-  const d = document.createElement("dialog");
-  d.id = "eventModal";
-  d.addEventListener("cancel", (e) => e.preventDefault()); // disable Esc-close
+  const d = document.createElement('dialog');
+  d.id = 'eventModal';
+  d.addEventListener('cancel', (e) => e.preventDefault()); // disable Esc-close
 
-  const wrap = document.createElement("div");
+  const wrap = document.createElement('div');
   Object.assign(wrap.style, {
-    minWidth: "min(520px, 92vw)",
-    maxWidth: "92vw",
-    padding: "18px 16px",
-    borderRadius: "14px",
-    border: "1px solid #263774",
-    background: "linear-gradient(180deg, #0a0f1f, #070a15)",
-    color: "#e8edff",
-    textAlign: "center",
-    fontFamily: "inherit",
+    minWidth: 'min(520px, 92vw)',
+    maxWidth: '92vw',
+    padding: '18px 16px',
+    borderRadius: '14px',
+    border: '1px solid #263774',
+    background: 'linear-gradient(180deg, #0a0f1f, #070a15)',
+    color: '#e8edff',
+    textAlign: 'center',
+    fontFamily: 'inherit',
   });
 
-  const img = document.createElement("img");
-  img.id = "eventImg";
+  const img = document.createElement('img');
+  img.id = 'eventImg';
   Object.assign(img.style, {
-    maxWidth: "60%",
-    maxHeight: "120px",
-    display: "block",
-    margin: "0 auto 10px",
-    border: "1px solid #263774",
-    borderRadius: "12px",
-    imageRendering: "pixelated",
+    maxWidth: '60%',
+    maxHeight: '120px',
+    display: 'block',
+    margin: '0 auto 10px',
+    border: '1px solid #263774',
+    borderRadius: '12px',
+    imageRendering: 'pixelated',
   });
 
-  const title = document.createElement("div");
-  title.id = "eventTitle";
+  const title = document.createElement('div');
+  title.id = 'eventTitle';
   Object.assign(title.style, {
-    fontSize: "20px",
-    marginBottom: "6px",
-    color: "#c7d2ff",
+    fontSize: '20px',
+    marginBottom: '6px',
+    color: '#c7d2ff',
   });
 
-  const body = document.createElement("div");
-  body.id = "eventBody";
-  Object.assign(body.style, { marginBottom: "14px", lineHeight: "1.35" });
+  const body = document.createElement('div');
+  body.id = 'eventBody';
+  Object.assign(body.style, { marginBottom: '14px', lineHeight: '1.35' });
 
-  const actions = document.createElement("div");
+  const actions = document.createElement('div');
   Object.assign(actions.style, {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "center",
-    flexWrap: "wrap",
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   });
 
-  const primary = document.createElement("button");
-  primary.id = "eventPrimary";
-  primary.textContent = "OK";
-  primary.style.padding = "10px 14px";
-  primary.style.borderRadius = "999px";
-  primary.style.border = "1px solid #c98d0b";
-  primary.style.cursor = "pointer";
-  primary.style.font = "inherit";
-  primary.style.minWidth = "140px";
-  primary.style.boxShadow = "0 8px 24px rgba(0,0,0,.35)";
-  primary.style.background = "linear-gradient(180deg, #ffd76e, #ffb703)";
-  primary.style.color = "#2b2411";
+  const primary = document.createElement('button');
+  primary.id = 'eventPrimary';
+  primary.textContent = 'OK';
+  primary.style.padding = '10px 14px';
+  primary.style.borderRadius = '999px';
+  primary.style.border = '1px solid #c98d0b';
+  primary.style.cursor = 'pointer';
+  primary.style.font = 'inherit';
+  primary.style.minWidth = '140px';
+  primary.style.boxShadow = '0 8px 24px rgba(0,0,0,.35)';
+  primary.style.background = 'linear-gradient(180deg, #ffd76e, #ffb703)';
+  primary.style.color = '#2b2411';
 
-  const secondary = document.createElement("button");
-  secondary.id = "eventSecondary";
-  secondary.textContent = "Cancel";
-  secondary.style.padding = "10px 14px";
-  secondary.style.borderRadius = "999px";
-  secondary.style.border = "1px solid #3b425a";
-  secondary.style.cursor = "pointer";
-  secondary.style.font = "inherit";
-  secondary.style.minWidth = "140px";
-  secondary.style.background = "transparent";
-  secondary.style.color = "#e8edff";
+  const secondary = document.createElement('button');
+  secondary.id = 'eventSecondary';
+  secondary.textContent = 'Cancel';
+  secondary.style.padding = '10px 14px';
+  secondary.style.borderRadius = '999px';
+  secondary.style.border = '1px solid #3b425a';
+  secondary.style.cursor = 'pointer';
+  secondary.style.font = 'inherit';
+  secondary.style.minWidth = '140px';
+  secondary.style.background = 'transparent';
+  secondary.style.color = '#e8edff';
 
   actions.appendChild(primary);
   actions.appendChild(secondary);
@@ -1803,91 +1907,91 @@ let __lobby = null;
 function ensureLobby() {
   if (__lobby) return __lobby;
 
-  const d = document.createElement("dialog");
-  d.id = "lobbyModal";
-  d.addEventListener("cancel", (e) => e.preventDefault());
+  const d = document.createElement('dialog');
+  d.id = 'lobbyModal';
+  d.addEventListener('cancel', (e) => e.preventDefault());
 
-  const wrap = document.createElement("div");
+  const wrap = document.createElement('div');
   Object.assign(wrap.style, {
-    minWidth: "min(640px, 96vw)",
-    padding: "18px 16px",
-    borderRadius: "14px",
-    border: "1px solid #2a3a7a",
-    background: "linear-gradient(180deg, #0c1224, #0a0e1d)",
-    color: "#e8edff",
-    fontFamily: "inherit",
+    minWidth: 'min(640px, 96vw)',
+    padding: '18px 16px',
+    borderRadius: '14px',
+    border: '1px solid #2a3a7a',
+    background: 'linear-gradient(180deg, #0c1224, #0a0e1d)',
+    color: '#e8edff',
+    fontFamily: 'inherit',
   });
 
-  const title = document.createElement("div");
-  title.textContent = "Lobby — Upgrades";
+  const title = document.createElement('div');
+  title.textContent = 'Lobby — Upgrades';
   Object.assign(title.style, {
-    fontSize: "22px",
-    marginBottom: "6px",
-    color: "#c7d2ff",
-    textAlign: "center",
+    fontSize: '22px',
+    marginBottom: '6px',
+    color: '#c7d2ff',
+    textAlign: 'center',
   });
 
-  const tokens = document.createElement("div");
-  tokens.id = "lobbyTokens";
-  tokens.textContent = "Tokens: 0";
+  const tokens = document.createElement('div');
+  tokens.id = 'lobbyTokens';
+  tokens.textContent = 'Tokens: 0';
   Object.assign(tokens.style, {
-    textAlign: "center",
-    marginBottom: "10px",
-    color: "#ffd76e",
+    textAlign: 'center',
+    marginBottom: '10px',
+    color: '#ffd76e',
   });
 
-  const grid = document.createElement("div");
-  grid.id = "lobbyGrid";
+  const grid = document.createElement('div');
+  grid.id = 'lobbyGrid';
   Object.assign(grid.style, {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "10px",
-    marginBottom: "14px",
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '10px',
+    marginBottom: '14px',
   });
 
-  const actions = document.createElement("div");
+  const actions = document.createElement('div');
   Object.assign(actions.style, {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "center",
-    flexWrap: "wrap",
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   });
 
-  const startBtn = document.createElement("button");
-  startBtn.textContent = "Enter Dungeon";
+  const startBtn = document.createElement('button');
+  startBtn.textContent = 'Enter Dungeon';
   Object.assign(startBtn.style, {
-    padding: "10px 14px",
-    borderRadius: "999px",
-    border: "1px solid #c98d0b",
-    background: "linear-gradient(180deg, #ffd76e, #ffb703)",
-    color: "#2b2411",
-    cursor: "pointer",
-    minWidth: "160px",
+    padding: '10px 14px',
+    borderRadius: '999px',
+    border: '1px solid #c98d0b',
+    background: 'linear-gradient(180deg, #ffd76e, #ffb703)',
+    color: '#2b2411',
+    cursor: 'pointer',
+    minWidth: '160px',
   });
-  startBtn.addEventListener("click", () => {
+  startBtn.addEventListener('click', () => {
     try {
       d.close();
     } catch {}
     newGame();
   });
 
-  const resetBtn = document.createElement("button");
-  resetBtn.textContent = "Respec (75% refund)";
+  const resetBtn = document.createElement('button');
+  resetBtn.textContent = 'Respec (75% refund)';
   Object.assign(resetBtn.style, {
-    padding: "10px 14px",
-    borderRadius: "999px",
-    border: "1px solid #3b425a",
-    background: "transparent",
-    color: "#e8edff",
-    cursor: "pointer",
-    minWidth: "160px",
+    padding: '10px 14px',
+    borderRadius: '999px',
+    border: '1px solid #3b425a',
+    background: 'transparent',
+    color: '#e8edff',
+    cursor: 'pointer',
+    minWidth: '160px',
   });
-  resetBtn.addEventListener("click", () => {
+  resetBtn.addEventListener('click', () => {
     openEventModal({
-      title: "Reset Upgrades?",
-      html: "Refund 75% of all tokens spent, and set all upgrade tiers to 0.",
-      primaryText: "Confirm Reset",
-      secondaryText: "Cancel",
+      title: 'Reset Upgrades?',
+      html: 'Refund 75% of all tokens spent, and set all upgrade tiers to 0.',
+      primaryText: 'Confirm Reset',
+      secondaryText: 'Cancel',
       onPrimary: () => {
         refundAllUpgrades();
         renderLobby();
@@ -1912,52 +2016,52 @@ function ensureLobby() {
 function renderLobby() {
   ensureMetaShape();
   const d = ensureLobby();
-  const tokenEl = d.querySelector("#lobbyTokens");
-  const grid = d.querySelector("#lobbyGrid");
+  const tokenEl = d.querySelector('#lobbyTokens');
+  const grid = d.querySelector('#lobbyGrid');
   tokenEl.textContent = `Tokens: ${META.tokens}`;
 
-  grid.innerHTML = "";
+  grid.innerHTML = '';
   Object.entries(UPGRADE_DEFS).forEach(([key, def]) => {
     const tier = getTier(key);
     const atMax = tier >= def.maxTier;
-    const price = atMax ? "MAX" : def.cost(tier);
+    const price = atMax ? 'MAX' : def.cost(tier);
 
-    const card = document.createElement("div");
+    const card = document.createElement('div');
     Object.assign(card.style, {
-      border: "1px solid #2a3a7a",
-      borderRadius: "12px",
-      padding: "12px",
-      background: "rgba(255,255,255,0.03)",
+      border: '1px solid #2a3a7a',
+      borderRadius: '12px',
+      padding: '12px',
+      background: 'rgba(255,255,255,0.03)',
     });
 
-    const h = document.createElement("div");
+    const h = document.createElement('div');
     h.innerHTML = `<strong>${def.label}</strong>`;
-    h.style.marginBottom = "6px";
+    h.style.marginBottom = '6px';
 
-    const p = document.createElement("div");
-    p.style.opacity = "0.9";
-    p.style.fontSize = "0.95em";
+    const p = document.createElement('div');
+    p.style.opacity = '0.9';
+    p.style.fontSize = '0.95em';
     p.textContent = def.desc;
 
-    const t = document.createElement("div");
-    t.style.margin = "8px 0";
+    const t = document.createElement('div');
+    t.style.margin = '8px 0';
     t.innerHTML = `Tier: <strong>${tier}</strong> / ${def.maxTier}`;
 
-    const buy = document.createElement("button");
-    buy.textContent = atMax ? "Maxed" : `Buy — ${price} tokens`;
+    const buy = document.createElement('button');
+    buy.textContent = atMax ? 'Maxed' : `Buy — ${price} tokens`;
     Object.assign(buy.style, {
-      padding: "8px 10px",
-      borderRadius: "999px",
-      border: "1px solid #c98d0b",
+      padding: '8px 10px',
+      borderRadius: '999px',
+      border: '1px solid #c98d0b',
       background: atMax
-        ? "transparent"
-        : "linear-gradient(180deg, #ffd76e, #ffb703)",
-      color: atMax ? "#aaa" : "#2b2411",
-      cursor: atMax ? "not-allowed" : "pointer",
-      minWidth: "140px",
+        ? 'transparent'
+        : 'linear-gradient(180deg, #ffd76e, #ffb703)',
+      color: atMax ? '#aaa' : '#2b2411',
+      cursor: atMax ? 'not-allowed' : 'pointer',
+      minWidth: '140px',
     });
     buy.disabled = atMax || !canBuy(key);
-    buy.addEventListener("click", () => buyUpgrade(key));
+    buy.addEventListener('click', () => buyUpgrade(key));
 
     card.appendChild(h);
     card.appendChild(p);
@@ -1984,21 +2088,21 @@ function openEventModal({
   onSecondary,
 }) {
   const d = ensureEventModal();
-  d.querySelector("#eventTitle").innerHTML = title || "";
-  d.querySelector("#eventBody").innerHTML = html || "";
-  const im = d.querySelector("#eventImg");
+  d.querySelector('#eventTitle').innerHTML = title || '';
+  d.querySelector('#eventBody').innerHTML = html || '';
+  const im = d.querySelector('#eventImg');
   if (img) {
-    im.style.display = "block";
+    im.style.display = 'block';
     im.src = img;
-    im.alt = title || "event";
+    im.alt = title || 'event';
   } else {
-    im.style.display = "none";
+    im.style.display = 'none';
   }
 
-  const p = d.querySelector("#eventPrimary");
-  const s = d.querySelector("#eventSecondary");
-  p.textContent = primaryText || "OK";
-  s.textContent = secondaryText || "Cancel";
+  const p = d.querySelector('#eventPrimary');
+  const s = d.querySelector('#eventSecondary');
+  p.textContent = primaryText || 'OK';
+  s.textContent = secondaryText || 'Cancel';
 
   // Clear old handlers by replacing nodes
   const pClone = p.cloneNode(true);
@@ -2006,14 +2110,14 @@ function openEventModal({
   p.parentNode.replaceChild(pClone, p);
   s.parentNode.replaceChild(sClone, s);
 
-  pClone.addEventListener("click", () => {
+  pClone.addEventListener('click', () => {
     try {
       onPrimary?.();
     } finally {
       closeEventModal();
     }
   });
-  sClone.addEventListener("click", () => {
+  sClone.addEventListener('click', () => {
     try {
       onSecondary?.();
     } finally {
@@ -2023,10 +2127,10 @@ function openEventModal({
 
   // Enter -> primary, Backspace -> secondary (Esc disabled)
   d.onkeydown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       pClone.click();
-    } else if (e.key.toLowerCase() === "backspace") {
+    } else if (e.key.toLowerCase() === 'backspace') {
       e.preventDefault();
       sClone.click();
     }
@@ -2048,11 +2152,11 @@ function closeEventModal() {
 // --------- Modal-based Events (no confirms) ----------
 function doTreasureChest() {
   openEventModal({
-    title: "Iron-Banded Chest",
-    img: "assets/treasureSVG.svg",
-    html: "A heavy chest sits half-buried in rubble. It could be a jackpot… or a trap.",
-    primaryText: "Open the Chest",
-    secondaryText: "Leave It",
+    title: 'Iron-Banded Chest',
+    img: 'assets/treasureSVG.svg',
+    html: 'A heavy chest sits half-buried in rubble. It could be a jackpot… or a trap.',
+    primaryText: 'Open the Chest',
+    secondaryText: 'Leave It',
     onPrimary: () => {
       const roll = RNG.int(1, 100);
       if (roll <= 20) {
@@ -2060,31 +2164,31 @@ function doTreasureChest() {
         const byDepth = eligibleEnemies(S.depth);
         const meta = RNG.pick(byDepth);
         S.enemy = clone(meta);
-        setEncounterStatus("Mimic!");
+        setEncounterStatus('Mimic!');
         openCombat(
           `The chest sprouts fangs! It's a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
         );
       } else if (roll <= 80) {
         const gold = RNG.int(50 + S.depth, 25 + S.depth * 2);
-        addLog(`Inside: <strong>${gold}g</strong>.`, "good");
+        addLog(`Inside: <strong>${gold}g</strong>.`, 'good');
         gainGold(gold);
       } else {
         const loot = RNG.pick(LOOT_TABLE);
         addItem(loot.key, 2);
-        addLog(`Inside: <strong>${loot.name}</strong>.`, "good");
+        addLog(`Inside: <strong>${loot.name}</strong>.`, 'good');
       }
     },
-    onSecondary: () => addLog("You leave the chest untouched."),
+    onSecondary: () => addLog('You leave the chest untouched.'),
   });
 }
 
 function doFountain() {
   openEventModal({
-    title: "Glowing Fountain",
-    img: "assets/fountainSVG.svg",
-    html: "Waters shimmer with faint magic. Drink to risk boon or bane.",
-    primaryText: "Drink",
-    secondaryText: "Do Not Drink",
+    title: 'Glowing Fountain',
+    img: 'assets/fountainSVG.svg',
+    html: 'Waters shimmer with faint magic. Drink to risk boon or bane.',
+    primaryText: 'Drink',
+    secondaryText: 'Do Not Drink',
     onPrimary: () => {
       const roll = RNG.int(1, 100);
       if (roll <= 40) {
@@ -2092,67 +2196,67 @@ function doFountain() {
         S.hp = Math.min(S.maxHp, S.hp + heal);
         addLog(
           `The water is rejuvenating. <span class="good">+${heal} HP</span>.`,
-          "good"
+          'good'
         );
       } else if (roll <= 70) {
         const heal = Math.ceil((12 + Math.floor(S.depth / 5)) * getHealMult());
         S.hp = Math.min(S.maxHp, S.hp + heal);
         addLog(
           `Cool and refreshing. <span class="good">+${heal} HP</span>.`,
-          "good"
+          'good'
         );
       } else if (roll <= 90) {
-        addLog("Nothing happens. Perhaps its magic is spent.");
+        addLog('Nothing happens. Perhaps its magic is spent.');
       } else {
         const dmg = RNG.int(2, 15);
         S.hp = Math.max(0, S.hp - dmg);
-        addLog(`Ugh—tainted! <span class="bad">-${dmg} HP</span>.`, "bad");
+        addLog(`Ugh—tainted! <span class="bad">-${dmg} HP</span>.`, 'bad');
         if (S.hp <= 0) return onDeath();
       }
       renderStats();
     },
-    onSecondary: () => addLog("You decide against it and move on."),
+    onSecondary: () => addLog('You decide against it and move on.'),
   });
 }
 
 function doCampfire() {
   openEventModal({
-    title: "Smoldering Campfire",
-    img: "assets/campfireSVG.svg",
-    html: "The embers still glow. Resting here could restore you… or draw attention.",
-    primaryText: "Rest",
-    secondaryText: "Move On",
+    title: 'Smoldering Campfire',
+    img: 'assets/campfireSVG.svg',
+    html: 'The embers still glow. Resting here could restore you… or draw attention.',
+    primaryText: 'Rest',
+    secondaryText: 'Move On',
     onPrimary: () => {
       const heal = Math.ceil(RNG.int(3, 20) * getHealMult());
       S.hp = Math.min(S.maxHp, S.hp + heal);
       addLog(
         `You warm your bones. <span class="good">+${heal} HP</span>.`,
-        "good"
+        'good'
       );
       renderStats();
       if (RNG.chance(15)) {
-        addLog("Shadows stir beyond the light…", "warn");
+        addLog('Shadows stir beyond the light…', 'warn');
         const byDepth = eligibleEnemies(S.depth);
         S.enemy = clone(RNG.pick(byDepth));
-        setEncounterStatus("Ambush!");
+        setEncounterStatus('Ambush!');
         openCombat(
           `Ambush! A <strong>${S.enemy.name}</strong> lunges from the dark! (HP ${S.enemy.hp})`
         );
       }
     },
-    onSecondary: () => addLog("You keep your distance."),
+    onSecondary: () => addLog('You keep your distance.'),
   });
 }
 
 function doSecretPassage() {
   openEventModal({
-    title: "Hidden Lever",
-    img: "assets/leverSVG.svg",
-    html: "A loose stone reveals a concealed lever. It might expose new routes.",
-    primaryText: "Pull the Lever",
-    secondaryText: "Leave It",
+    title: 'Hidden Lever',
+    img: 'assets/leverSVG.svg',
+    html: 'A loose stone reveals a concealed lever. It might expose new routes.',
+    primaryText: 'Pull the Lever',
+    secondaryText: 'Leave It',
     onPrimary: () => {
-      addLog("Hidden passages grind open…", "good");
+      addLog('Hidden passages grind open…', 'good');
       S.exitDiscovered = true;
       const R = 1;
       for (let dy = -R; dy <= R; dy++) {
@@ -2164,58 +2268,58 @@ function doSecretPassage() {
         }
       }
       addLog(
-        "You mark the route to a hidden stairwell <strong>★</strong>.",
-        "good"
+        'You mark the route to a hidden stairwell <strong>★</strong>.',
+        'good'
       );
       renderMap();
     },
-    onSecondary: () => addLog("You resist the urge to meddle."),
+    onSecondary: () => addLog('You resist the urge to meddle.'),
   });
 }
 
 function doOreVein() {
   openEventModal({
-    title: "Glittering Ore Vein",
-    img: "assets/oreSVG.svg",
-    html: "Rich veins snake through the rock. Mining might pay… or cause a cave-in.",
-    primaryText: "Mine Ore",
-    secondaryText: "Leave It",
+    title: 'Glittering Ore Vein',
+    img: 'assets/oreSVG.svg',
+    html: 'Rich veins snake through the rock. Mining might pay… or cause a cave-in.',
+    primaryText: 'Mine Ore',
+    secondaryText: 'Leave It',
     onPrimary: () => {
       const gold = RNG.int(10 + S.depth, 15 + S.depth * 2);
-      addLog(`You chip free <strong>${gold}g</strong>.`, "good");
+      addLog(`You chip free <strong>${gold}g</strong>.`, 'good');
       gainGold(gold);
       if (RNG.chance(20)) {
         const dmg = RNG.int(1, 10);
         S.hp = Math.max(0, S.hp - dmg);
         addLog(
           `The ceiling sheds rubble! <span class="bad">-${dmg} HP</span>.`,
-          "bad"
+          'bad'
         );
         if (S.hp <= 0) return onDeath();
         renderStats();
       }
     },
-    onSecondary: () => addLog("You move on, pockets unfilled."),
+    onSecondary: () => addLog('You move on, pockets unfilled.'),
   });
 }
 
 function doAncientTablet() {
   openEventModal({
-    title: "Ancient Tablet",
-    img: "assets/tabletSVG.svg",
-    html: "Runes spiral in a forgotten script. Study them to glean hidden lore.",
-    primaryText: "Study",
-    secondaryText: "Ignore",
+    title: 'Ancient Tablet',
+    img: 'assets/tabletSVG.svg',
+    html: 'Runes spiral in a forgotten script. Study them to glean hidden lore.',
+    primaryText: 'Study',
+    secondaryText: 'Ignore',
     onPrimary: () => {
       const xp = RNG.int(5, 55) + Math.floor(S.depth / 3);
       addLog(
         `You decipher a fragment of lore. <span class="good">+${xp} XP</span>.`,
-        "good"
+        'good'
       );
       gainXP(xp);
     },
     onSecondary: () =>
-      addLog("You avert your eyes from the unsettling glyphs."),
+      addLog('You avert your eyes from the unsettling glyphs.'),
   });
 }
 
@@ -2256,27 +2360,27 @@ function rollEncounter(opts = {}) {
       Object.entries(merged).forEach(([k, q]) => addItem(k, q));
       addLog(
         `You find a tucked-away stash: ${lines.length} item(s) added.`,
-        "good"
+        'good'
       );
       return;
     }
 
     openEventModal({
-      title: "Loose Stash",
-      img: "assets/treasureSVG.svg",
+      title: 'Loose Stash',
+      img: 'assets/treasureSVG.svg',
       html: `Under a broken flagstone you uncover:<ul style="text-align:left;margin:8px 0 0 20px">${lines.join(
-        ""
+        ''
       )}</ul>`,
-      primaryText: "Take Everything",
-      secondaryText: "Leave It",
+      primaryText: 'Take Everything',
+      secondaryText: 'Leave It',
       onPrimary: () => {
         Object.entries(merged).forEach(([k, q]) => {
           addItem(k, q);
           const meta = LOOT_TABLE.find((l) => l.key === k);
-          addLog(`You take <strong>${meta?.name || k}</strong> ×${q}.`, "good");
+          addLog(`You take <strong>${meta?.name || k}</strong> ×${q}.`, 'good');
         });
       },
-      onSecondary: () => addLog("You leave the stash untouched."),
+      onSecondary: () => addLog('You leave the stash untouched.'),
     });
   };
 
@@ -2285,55 +2389,55 @@ function rollEncounter(opts = {}) {
     const giveWeapon = RNG.chance(50);
     if (giveWeapon) {
       const tpl = pickDropWeapon();
-      const w = makeWeaponFromTemplate(tpl, "drop", 1.0);
+      const w = makeWeaponFromTemplate(tpl, 'drop', 1.0);
       if (forbidEvents) {
         addWeapon(w);
         addLog(
           `You pry open a gear cache: <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
-          "good"
+          'good'
         );
         return;
       }
       openEventModal({
-        title: "Gear Cache",
-        img: "assets/treasureSVG.svg",
+        title: 'Gear Cache',
+        img: 'assets/treasureSVG.svg',
         html: `Inside the splintered crate lies a <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
-        primaryText: "Take Weapon",
-        secondaryText: "Leave It",
+        primaryText: 'Take Weapon',
+        secondaryText: 'Leave It',
         onPrimary: () => {
           addWeapon(w);
           addLog(
             `You take <strong>${w.name}</strong> <span class="good">(+${w.atk})</span>.`,
-            "good"
+            'good'
           );
         },
-        onSecondary: () => addLog("You leave the cache closed."),
+        onSecondary: () => addLog('You leave the cache closed.'),
       });
     } else {
       const tpl = pickDropShield();
-      const sh = makeShieldFromTemplate(tpl, "drop");
+      const sh = makeShieldFromTemplate(tpl, 'drop');
       if (forbidEvents) {
         addShield(sh);
         addLog(
           `You pry open a gear cache: <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
-          "good"
+          'good'
         );
         return;
       }
       openEventModal({
-        title: "Gear Cache",
-        img: "assets/treasureSVG.svg",
+        title: 'Gear Cache',
+        img: 'assets/treasureSVG.svg',
         html: `Packed in straw: <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
-        primaryText: "Take Shield",
-        secondaryText: "Leave It",
+        primaryText: 'Take Shield',
+        secondaryText: 'Leave It',
         onPrimary: () => {
           addShield(sh);
           addLog(
             `You take <strong>${sh.name}</strong> <small>(${sh.def} DEF • ${sh.rollChance}% block)</small>.`,
-            "good"
+            'good'
           );
         },
-        onSecondary: () => addLog("You leave the cache closed."),
+        onSecondary: () => addLog('You leave the cache closed.'),
       });
     }
   };
@@ -2355,7 +2459,7 @@ function rollEncounter(opts = {}) {
       { fn: doFountain, weight: 2 }, // ✚ small heal / risk
       { fn: doSecretPassage, weight: 1 }, // ★ reveal exit
     ];
-    const choice = weightedPick(eventPool, "weight");
+    const choice = weightedPick(eventPool, 'weight');
     choice.fn();
   };
 
@@ -2364,7 +2468,7 @@ function rollEncounter(opts = {}) {
   // --- Enemy (28%) ---
   if (r <= 28) {
     S.enemy = pickEnemyBiased(S.depth);
-    setEncounterStatus("Enemy!");
+    setEncounterStatus('Enemy!');
     openCombat(
       `A <strong>${S.enemy.name}</strong> emerges from the dark! (HP ${S.enemy.hp})`
     );
@@ -2377,7 +2481,7 @@ function rollEncounter(opts = {}) {
     S.hp = Math.max(0, S.hp - dmg);
     addLog(
       `A hidden trap damages you for <span class="bad">${dmg} damage</span>.`,
-      "bad"
+      'bad'
     );
     if (S.hp <= 0) return onDeath();
     renderStats();
@@ -2415,7 +2519,7 @@ function rollEncounter(opts = {}) {
   }
 
   // --- Empty (20%) ---
-  addLog("This room appears empty.");
+  addLog('This room appears empty.');
 }
 
 function enemyAttack() {
@@ -2433,19 +2537,19 @@ function enemyAttack() {
   if (reduced > 0) {
     addCombatLog(
       `🛡️ Your ${sh.name} reduces damage by <strong>${reduced}</strong>.`,
-      "good"
+      'good'
     );
   }
 
   S.hp = Math.max(0, S.hp - dmg);
   addCombatLog(
     `${S.enemy.name} strikes for <span class="bad">${dmg}</span>.`,
-    "bad"
+    'bad'
   );
   renderStats();
 
   if (S.hp <= 0) {
-    addCombatLog("<strong>You collapse…</strong>", "bad");
+    addCombatLog('<strong>You collapse…</strong>', 'bad');
     closeCombat(true);
     onDeath();
   }
@@ -2455,7 +2559,7 @@ function currentWeaponBonus() {
   return S &&
     S.equipped &&
     S.equipped.weapon &&
-    typeof S.equipped.weapon.atk === "number"
+    typeof S.equipped.weapon.atk === 'number'
     ? S.equipped.weapon.atk
     : 0;
 }
@@ -2473,7 +2577,7 @@ function playerAttack() {
 
     S.enemy.hp -= dmg;
     const wtxt =
-      wpn && S?.equipped?.weapon ? ` with your ${S.equipped.weapon.name}` : "";
+      wpn && S?.equipped?.weapon ? ` with your ${S.equipped.weapon.name}` : '';
     addCombatLog(`You strike${wtxt} for <strong>${dmg}</strong>.`);
     renderStats();
 
@@ -2484,7 +2588,7 @@ function playerAttack() {
       if (S.enemy.isBoss) {
         addCombatLog(
           `The ${S.enemy.name} is vanquished! You seize <span class="good">${gold}g</span>.`,
-          "good"
+          'good'
         );
         gainGold(gold);
         gainXP(xp);
@@ -2493,12 +2597,12 @@ function playerAttack() {
         handleBossDrops(S.enemy);
 
         S.enemy = null;
-        setEncounterStatus("Idle");
+        setEncounterStatus('Idle');
         closeCombat();
 
         addLog(
-          "<em>With the guardian fallen, a shift in the stone reveals a path below…</em>",
-          "good"
+          '<em>With the guardian fallen, a shift in the stone reveals a path below…</em>',
+          'good'
         );
         // Auto-descend after a boss
         descend();
@@ -2508,14 +2612,14 @@ function playerAttack() {
       // --- Normal enemy defeat flow ---
       addCombatLog(
         `The ${S.enemy.name} is defeated! You loot <span class="good">${gold}g</span>.`,
-        "good"
+        'good'
       );
       gainGold(gold);
       gainXP(xp);
       maybeDropWeapon();
       maybeDropShield();
       S.enemy = null;
-      setEncounterStatus("Idle");
+      setEncounterStatus('Idle');
       closeCombat();
 
       if (RNG.chance(5)) {
@@ -2528,10 +2632,10 @@ function playerAttack() {
       enemyAttack();
     }
   } catch (err) {
-    console.error("Attack error:", err);
+    console.error('Attack error:', err);
     addCombatLog(
       `<span class="bad">[Error]</span> Attack failed: ${err.message || err}`,
-      "bad"
+      'bad'
     );
   }
 }
@@ -2540,18 +2644,18 @@ function tryFlee() {
   if (!S.enemy) return;
 
   if (S.enemy.isBoss) {
-    addCombatLog("There is no escape from this foe!", "warn");
+    addCombatLog('There is no escape from this foe!', 'warn');
     enemyAttack();
     return;
   }
 
   if (RNG.chance(55)) {
-    addCombatLog("You slip away into the shadows.", "good");
+    addCombatLog('You slip away into the shadows.', 'good');
     S.enemy = null;
-    setEncounterStatus("Idle");
+    setEncounterStatus('Idle');
     closeCombat();
   } else {
-    addCombatLog("You fail to escape!", "warn");
+    addCombatLog('You fail to escape!', 'warn');
     enemyAttack();
   }
 }
@@ -2559,14 +2663,14 @@ function tryFlee() {
 // ------------------------------
 // Shops
 // ------------------------------
-const shopModal = document.getElementById("shopModal");
+const shopModal = document.getElementById('shopModal');
 
 function openShop() {
   // General trader: potions & (normal) bombs
   const offers = Array.from({ length: 3 }, () => RNG.pick(LOOT_TABLE));
   renderShopUI(
-    "A Wandering Trader",
-    offers.map((o) => ({ type: "consumable", item: o })),
+    'A Wandering Trader',
+    offers.map((o) => ({ type: 'consumable', item: o })),
     []
   );
 }
@@ -2582,7 +2686,7 @@ function openWeaponShop() {
   // Build shop items at FULL power (no reduction/replicas)
   const weaponsForSale = uniqueTemplates.map((tpl) => {
     // Full strength: powerFactor = 1.0
-    const w = makeWeaponFromTemplate(tpl, "shop", 1.0);
+    const w = makeWeaponFromTemplate(tpl, 'shop', 1.0);
 
     // Use the gentler shop price curve you defined
     w.price = shopWeaponPrice(w.atk);
@@ -2591,59 +2695,59 @@ function openWeaponShop() {
   });
 
   // Only weapons here (no bombs), exactly 5 if available
-  const offers = weaponsForSale.map((w) => ({ type: "weapon", item: w }));
+  const offers = weaponsForSale.map((w) => ({ type: 'weapon', item: w }));
 
-  renderShopUI("A Weapon Trader", offers, weaponsForSale);
+  renderShopUI('A Weapon Trader', offers, weaponsForSale);
 }
 
 function renderShopUI(title, offers, weaponsForSale) {
-  $("#shopTitle").textContent = title;
-  const list = $("#shopList");
-  const actions = $("#shopActions");
-  const sellList = $("#sellList");
-  const sellActions = $("#sellActions");
-  list.innerHTML = "";
-  actions.innerHTML = "";
-  sellList.innerHTML = "";
-  sellActions.innerHTML = "";
+  $('#shopTitle').textContent = title;
+  const list = $('#shopList');
+  const actions = $('#shopActions');
+  const sellList = $('#sellList');
+  const sellActions = $('#sellActions');
+  list.innerHTML = '';
+  actions.innerHTML = '';
+  sellList.innerHTML = '';
+  sellActions.innerHTML = '';
 
   // BUY
   offers.forEach((o, idx) => {
-    if (o.type === "consumable") {
+    if (o.type === 'consumable') {
       const it = o.item;
-      const p = document.createElement("p");
+      const p = document.createElement('p');
       p.innerHTML = `${idx + 1}. <strong>${it.name}</strong> — ${it.price}g`;
       list.appendChild(p);
-      const b = document.createElement("button");
+      const b = document.createElement('button');
       b.textContent = `Buy ${it.name}`;
-      b.addEventListener("click", () => {
+      b.addEventListener('click', () => {
         if (S.gold >= it.price) {
           S.gold -= it.price;
           addItem(it.key, 1);
-          addLog(`Purchased ${it.name} for ${it.price}g.`, "good");
+          addLog(`Purchased ${it.name} for ${it.price}g.`, 'good');
           renderStats();
         } else {
-          addLog("Not enough gold to trade.");
+          addLog('Not enough gold to trade.');
         }
       });
       actions.appendChild(b);
-    } else if (o.type === "weapon") {
+    } else if (o.type === 'weapon') {
       const w = o.item;
-      const p = document.createElement("p");
+      const p = document.createElement('p');
       p.innerHTML = `${idx + 1}. <strong>🗡️ ${w.name}</strong> <small>+${
         w.atk
       } • ${w.rarity}</small> — ${w.price}g`;
       list.appendChild(p);
-      const b = document.createElement("button");
+      const b = document.createElement('button');
       b.textContent = `Buy ${w.name}`;
-      b.addEventListener("click", () => {
+      b.addEventListener('click', () => {
         if (S.gold >= w.price) {
           S.gold -= w.price;
           addWeapon({ ...w });
-          addLog(`Purchased ${w.name} for ${w.price}g.`, "good");
+          addLog(`Purchased ${w.name} for ${w.price}g.`, 'good');
           renderStats();
         } else {
-          addLog("Not enough gold to trade.");
+          addLog('Not enough gold to trade.');
         }
       });
       actions.appendChild(b);
@@ -2651,22 +2755,22 @@ function renderShopUI(title, offers, weaponsForSale) {
   });
 
   // SELL (50% of value)
-  if (!S.inventory.length) sellList.innerHTML = "<p>(Nothing to sell)</p>";
+  if (!S.inventory.length) sellList.innerHTML = '<p>(Nothing to sell)</p>';
 
   // Consumables
   S.inventory.forEach((it) => {
     const meta = LOOT_TABLE.find((x) => x.key === it.key);
     if (meta) {
       const price = Math.max(1, Math.floor((meta.price || 1) * 0.5));
-      const p = document.createElement("p");
+      const p = document.createElement('p');
       p.innerHTML = `<strong>${meta.name}</strong> x${it.qty} — ${price}g each`;
       sellList.appendChild(p);
-      const b = document.createElement("button");
+      const b = document.createElement('button');
       b.textContent = `Sell 1 ${meta.name}`;
-      b.addEventListener("click", () => {
+      b.addEventListener('click', () => {
         if (removeItem(it.key, 1)) {
           S.gold += price;
-          addLog(`Sold ${meta.name} for ${price}g.`, "good");
+          addLog(`Sold ${meta.name} for ${price}g.`, 'good');
           renderStats();
           renderShopUI(title, offers, weaponsForSale);
         }
@@ -2677,21 +2781,21 @@ function renderShopUI(title, offers, weaponsForSale) {
 
   // Weapons
   S.inventory
-    .filter((x) => x.key === "weapon")
+    .filter((x) => x.key === 'weapon')
     .forEach((w) => {
       const price = Math.max(
         1,
-        Math.floor((w.price || priceForWeapon(w.atk, "drop")) * 0.5)
+        Math.floor((w.price || priceForWeapon(w.atk, 'drop')) * 0.5)
       );
-      const p = document.createElement("p");
+      const p = document.createElement('p');
       p.innerHTML = `<strong>🗡️ ${w.name}</strong> <small>+${w.atk} • ${w.rarity}</small> — ${price}g`;
       sellList.appendChild(p);
-      const b = document.createElement("button");
+      const b = document.createElement('button');
       b.textContent = `Sell ${w.name}`;
-      b.addEventListener("click", () => {
+      b.addEventListener('click', () => {
         if (removeWeaponById(w.id)) {
           S.gold += price;
-          addLog(`Sold ${w.name} for ${price}g.`, "good");
+          addLog(`Sold ${w.name} for ${price}g.`, 'good');
           renderStats();
           renderShopUI(title, offers, weaponsForSale);
         }
@@ -2701,23 +2805,23 @@ function renderShopUI(title, offers, weaponsForSale) {
 
   // Shields (moved outside weapon loop to avoid duplication)
   S.inventory
-    .filter((x) => x.key === "shield")
+    .filter((x) => x.key === 'shield')
     .forEach((sh) => {
       const price = Math.max(
         1,
         Math.floor(
-          (sh.price || priceForShield(sh.def, sh.rollChance, "drop")) * 0.5
+          (sh.price || priceForShield(sh.def, sh.rollChance, 'drop')) * 0.5
         )
       );
-      const p = document.createElement("p");
+      const p = document.createElement('p');
       p.innerHTML = `<strong>🛡️ ${sh.name}</strong> <small>${sh.def} DEF • ${sh.rollChance}% • ${sh.rarity}</small> — ${price}g`;
       sellList.appendChild(p);
-      const b = document.createElement("button");
+      const b = document.createElement('button');
       b.textContent = `Sell ${sh.name}`;
-      b.addEventListener("click", () => {
+      b.addEventListener('click', () => {
         if (removeShieldById(sh.id)) {
           S.gold += price;
-          addLog(`Sold ${sh.name} for ${price}g.`, "good");
+          addLog(`Sold ${sh.name} for ${price}g.`, 'good');
           renderStats();
           renderShopUI(title, offers, weaponsForSale);
         }
@@ -2737,8 +2841,8 @@ function renderShopUI(title, offers, weaponsForSale) {
 function move(dx, dy) {
   if (S.enemy) {
     addLog(
-      "You cannot move while engaged! Try <strong>Flee</strong> or resolve the fight.",
-      "warn"
+      'You cannot move while engaged! Try <strong>Flee</strong> or resolve the fight.',
+      'warn'
     );
     return;
   }
@@ -2758,8 +2862,8 @@ function move(dx, dy) {
 
   // 🔒 Boss floors: no exit, no encounters, no wandering
   if (isBossFloor(S.depth)) {
-    addLog("There is no way out but through…", "warn");
-    setEncounterStatus(S.enemy ? "Boss!" : "Idle");
+    addLog('There is no way out but through…', 'warn');
+    setEncounterStatus(S.enemy ? 'Boss!' : 'Idle');
     return;
   }
 
@@ -2767,7 +2871,7 @@ function move(dx, dy) {
 
   if (revisiting) {
     addLog("You return to a room you already explored. It's quiet.");
-    setEncounterStatus("Idle");
+    setEncounterStatus('Idle');
     return;
   }
 
@@ -2788,12 +2892,12 @@ function rest() {
     `You rest, patching wounds (+<span class="good">${heal} HP</span>)` +
       (S.restsThisFloor > 1
         ? ` <small>(${diminish.toFixed(2)}% this floor)</small>`
-        : ""),
-    "good"
+        : ''),
+    'good'
   );
 
   if (RNG.chance(15)) {
-    addLog("You hear something behind you!", "warn");
+    addLog('You hear something behind you!', 'warn');
     rollEncounter({ forbidEvents: true });
   }
 
@@ -2802,7 +2906,7 @@ function rest() {
 
 function useScoutPulse() {
   if (S.scoutCharges <= 0) {
-    addLog("Your scouting sense is spent.", "warn");
+    addLog('Your scouting sense is spent.', 'warn');
     return;
   }
   S.scoutCharges--;
@@ -2833,15 +2937,15 @@ function useScoutPulse() {
   }
 
   addLog(
-    "You survey the area—nearby rooms are now charted (no threats stirred).",
-    "good"
+    'You survey the area—nearby rooms are now charted (no threats stirred).',
+    'good'
   );
   renderMap();
   renderStats();
 }
 
 function waitTurn() {
-  addLog("You wait, knowing the only way out is to keep moving…");
+  addLog('You wait, knowing the only way out is to keep moving…');
 }
 
 // ------------------------------
@@ -2855,7 +2959,7 @@ function waitTurn() {
 
 function onDeath() {
   // Close any open dialogs to avoid stacking issues
-  document.querySelectorAll("dialog").forEach((d) => {
+  document.querySelectorAll('dialog').forEach((d) => {
     try {
       if (d.open) d.close();
     } catch {}
@@ -2863,11 +2967,11 @@ function onDeath() {
 
   // 🔒 PERMADEATH: erase the save slot immediately
   try {
-    localStorage.removeItem("retro-dungeon-save");
+    localStorage.removeItem('retro-dungeon-save');
   } catch {}
 
-  addLog("<strong>You are dead…</strong>", "bad");
-  setEncounterStatus("Defeated");
+  addLog('<strong>You are dead…</strong>', 'bad');
+  setEncounterStatus('Defeated');
 
   // Build and show the dramatic death screen
   showDeathScreen();
@@ -2879,7 +2983,7 @@ function calcRunTokens() {
 }
 
 function showDeathScreen() {
-  const old = document.getElementById("deathScreen");
+  const old = document.getElementById('deathScreen');
   if (old) old.remove();
 
   // 🎁 Award tokens for the run
@@ -2889,99 +2993,99 @@ function showDeathScreen() {
 
   const weaponTxt = S.equipped?.weapon
     ? `${S.equipped.weapon.name} (+${S.equipped.weapon.atk})`
-    : "None";
+    : 'None';
   const depthTxt = `Depth ${S.depth}`;
   const levelTxt = `Lv. ${S.level}`;
   const goldTxt = `${S.gold}g`;
 
-  const overlay = document.createElement("div");
-  overlay.id = "deathScreen";
+  const overlay = document.createElement('div');
+  overlay.id = 'deathScreen';
   Object.assign(overlay.style, {
-    position: "fixed",
-    inset: "0",
-    zIndex: "100000",
-    display: "grid",
-    placeItems: "center",
-    pointerEvents: "auto",
+    position: 'fixed',
+    inset: '0',
+    zIndex: '100000',
+    display: 'grid',
+    placeItems: 'center',
+    pointerEvents: 'auto',
     background:
-      "radial-gradient(70% 60% at 50% 35%, rgba(120,0,0,0.55), rgba(0,0,0,0.92))",
-    animation: "deathFadeIn 300ms ease-out both",
+      'radial-gradient(70% 60% at 50% 35%, rgba(120,0,0,0.55), rgba(0,0,0,0.92))',
+    animation: 'deathFadeIn 300ms ease-out both',
   });
 
-  const panel = document.createElement("div");
+  const panel = document.createElement('div');
   Object.assign(panel.style, {
-    width: "min(560px, 92vw)",
-    padding: "20px 18px",
-    borderRadius: "16px",
-    border: "1px solid #5a1c1c",
-    background: "linear-gradient(180deg, #1b0d10, #0b0507)",
-    boxShadow: "0 10px 60px rgba(0,0,0,.7), inset 0 0 40px rgba(255,0,0,.08)",
-    textAlign: "center",
-    color: "#f2dede",
-    fontFamily: "inherit",
+    width: 'min(560px, 92vw)',
+    padding: '20px 18px',
+    borderRadius: '16px',
+    border: '1px solid #5a1c1c',
+    background: 'linear-gradient(180deg, #1b0d10, #0b0507)',
+    boxShadow: '0 10px 60px rgba(0,0,0,.7), inset 0 0 40px rgba(255,0,0,.08)',
+    textAlign: 'center',
+    color: '#f2dede',
+    fontFamily: 'inherit',
   });
 
-  const title = document.createElement("div");
-  title.textContent = "YOU HAVE FALLEN";
+  const title = document.createElement('div');
+  title.textContent = 'YOU HAVE FALLEN';
   Object.assign(title.style, {
-    fontSize: "28px",
-    letterSpacing: "2px",
-    marginBottom: "8px",
-    color: "#ffb3b3",
-    textShadow: "0 0 18px rgba(255,70,70,.35)",
+    fontSize: '28px',
+    letterSpacing: '2px',
+    marginBottom: '8px',
+    color: '#ffb3b3',
+    textShadow: '0 0 18px rgba(255,70,70,.35)',
   });
 
-  const sub = document.createElement("div");
+  const sub = document.createElement('div');
   sub.innerHTML = `${depthTxt} • ${levelTxt} • <span style="color:#ffd86b">${goldTxt}</span>`;
-  Object.assign(sub.style, { marginBottom: "10px", color: "#f7c6c6" });
+  Object.assign(sub.style, { marginBottom: '10px', color: '#f7c6c6' });
 
-  const wline = document.createElement("div");
+  const wline = document.createElement('div');
   wline.innerHTML = `Weapon: <span style="color:#c7d2ff">${weaponTxt}</span>`;
-  Object.assign(wline.style, { marginBottom: "8px", color: "#e6c8c8" });
+  Object.assign(wline.style, { marginBottom: '8px', color: '#e6c8c8' });
 
-  const reward = document.createElement("div");
+  const reward = document.createElement('div');
   reward.innerHTML = `<span style="color:#ffd76e">+${earned}</span> tokens earned for your efforts.`;
-  Object.assign(reward.style, { marginBottom: "14px" });
+  Object.assign(reward.style, { marginBottom: '14px' });
 
-  const btnWrap = document.createElement("div");
+  const btnWrap = document.createElement('div');
   Object.assign(btnWrap.style, {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "center",
-    flexWrap: "wrap",
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   });
 
   const mkBtn = (text) => {
-    const b = document.createElement("button");
+    const b = document.createElement('button');
     b.textContent = text;
-    b.style.padding = "10px 14px";
-    b.style.borderRadius = "999px";
-    b.style.border = "1px solid #c98d0b";
-    b.style.cursor = "pointer";
-    b.style.font = "inherit";
-    b.style.minWidth = "160px";
-    b.style.boxShadow = "0 8px 24px rgba(0,0,0,.35)";
-    b.style.background = "linear-gradient(180deg, #ffd76e, #ffb703)";
-    b.style.color = "#2b2411";
+    b.style.padding = '10px 14px';
+    b.style.borderRadius = '999px';
+    b.style.border = '1px solid #c98d0b';
+    b.style.cursor = 'pointer';
+    b.style.font = 'inherit';
+    b.style.minWidth = '160px';
+    b.style.boxShadow = '0 8px 24px rgba(0,0,0,.35)';
+    b.style.background = 'linear-gradient(180deg, #ffd76e, #ffb703)';
+    b.style.color = '#2b2411';
     return b;
   };
 
-  const restartBtn = mkBtn("Restart Run");
-  const lobbyBtn = mkBtn("Return to Lobby");
+  const restartBtn = mkBtn('Restart Run');
+  const lobbyBtn = mkBtn('Return to Lobby');
 
   const cleanup = () => {
     if (__deathKeyHandler) {
-      window.removeEventListener("keydown", __deathKeyHandler, true);
+      window.removeEventListener('keydown', __deathKeyHandler, true);
       __deathKeyHandler = null;
     }
     overlay.remove();
   };
 
-  restartBtn.addEventListener("click", () => {
+  restartBtn.addEventListener('click', () => {
     cleanup();
     newGame();
   });
-  lobbyBtn.addEventListener("click", () => {
+  lobbyBtn.addEventListener('click', () => {
     cleanup();
     openLobby();
   });
@@ -3001,20 +3105,20 @@ function showDeathScreen() {
     const k = e.key.toLowerCase();
     e.stopImmediatePropagation();
     e.preventDefault();
-    if (k === "enter" || k === "r") {
+    if (k === 'enter' || k === 'r') {
       cleanup();
       newGame();
     }
-    if (k === "l") {
+    if (k === 'l') {
       cleanup();
       openLobby();
     }
   };
-  window.addEventListener("keydown", __deathKeyHandler, true);
+  window.addEventListener('keydown', __deathKeyHandler, true);
 
-  const styleId = "deathScreen-anim";
+  const styleId = 'deathScreen-anim';
   if (!document.getElementById(styleId)) {
-    const s = document.createElement("style");
+    const s = document.createElement('style');
     s.id = styleId;
     s.textContent = `@keyframes deathFadeIn { from { opacity: 0 } to { opacity: 1 } }`;
     document.head.appendChild(s);
@@ -3038,48 +3142,48 @@ function newGame() {
   if (S.scoutCharges > 0)
     addLog(`<small>[Scout charges: ${S.scoutCharges}]</small>`);
 
-  logEl.innerHTML = "";
-  addLog("You descend the stairs into the unknown.");
+  logEl.innerHTML = '';
+  addLog('You descend the stairs into the unknown.');
   refreshUI();
 }
 
 // ------------------------------
 // Save / Load
 // ------------------------------
-const SAVE_KEY = "retro-dungeon-save";
+const SAVE_KEY = 'retro-dungeon-save';
 function saveGame() {
   localStorage.setItem(SAVE_KEY, JSON.stringify(S));
-  addLog("<small>[Saved]</small>");
+  addLog('<small>[Saved]</small>');
 }
 // app.js — REPLACE your loadGame() with this
 function loadGame() {
-  if (document.getElementById("deathScreen")) {
-    addLog("You cannot load while dead.", "warn");
+  if (document.getElementById('deathScreen')) {
+    addLog('You cannot load while dead.', 'warn');
     return;
   }
   const snap = localStorage.getItem(SAVE_KEY);
   if (!snap) {
-    addLog("No save found.");
+    addLog('No save found.');
     return;
   }
   try {
     S = JSON.parse(snap);
   } catch (e) {
-    addLog("Corrupt save. Starting fresh.", "warn");
+    addLog('Corrupt save. Starting fresh.', 'warn');
     S = initialState();
   }
 
   // Clean up death overlay & key-capture if present
-  const ds = document.getElementById("deathScreen");
+  const ds = document.getElementById('deathScreen');
   if (ds) ds.remove();
-  if (typeof __deathKeyHandler === "function") {
+  if (typeof __deathKeyHandler === 'function') {
     try {
-      window.removeEventListener("keydown", __deathKeyHandler, true);
+      window.removeEventListener('keydown', __deathKeyHandler, true);
     } catch {}
     __deathKeyHandler = null;
   }
   // Close any open dialogs
-  document.querySelectorAll("dialog").forEach((d) => {
+  document.querySelectorAll('dialog').forEach((d) => {
     try {
       if (d.open) d.close();
     } catch {}
@@ -3089,63 +3193,63 @@ function loadGame() {
   sanitizeState();
 
   refreshUI();
-  addLog("<small>[Loaded]</small>");
+  addLog('<small>[Loaded]</small>');
 
   // Resume combat modal if save had an active enemy
   if (S.enemy) {
-    setEncounterStatus("Enemy!");
+    setEncounterStatus('Enemy!');
     openCombat(
       `You come to your senses mid-fight with a <strong>${S.enemy.name}</strong>! (HP ${S.enemy.hp})`
     );
   } else {
-    setEncounterStatus("Idle");
+    setEncounterStatus('Idle');
   }
 }
 
 // ------------------------------
 // Modals & Wiring
 // ------------------------------
-const combatModal = document.getElementById("combatModal");
+const combatModal = document.getElementById('combatModal');
 // Disable default Esc-close on the combat dialog
-combatModal?.addEventListener("cancel", (e) => e.preventDefault());
+combatModal?.addEventListener('cancel', (e) => e.preventDefault());
 // app.js — REPLACE the whole openCombat() function
 function openCombat(openingLine) {
-  const log = $("#combatLog");
-  log.innerHTML = "";
+  const log = $('#combatLog');
+  log.innerHTML = '';
 
   // 🔒 Hide/disable the close button during combat
-  const closeBtn = document.getElementById("combatClose");
+  const closeBtn = document.getElementById('combatClose');
   if (closeBtn) {
     closeBtn.disabled = true;
-    closeBtn.style.display = "none";
-    closeBtn.setAttribute("aria-hidden", "true");
+    closeBtn.style.display = 'none';
+    closeBtn.setAttribute('aria-hidden', 'true');
     closeBtn.title = "You can't close this while an enemy is present.";
   }
 
   // Show portrait if the enemy defines an image
   if (S.enemy && S.enemy.img) {
-    const img = document.createElement("img");
+    const img = document.createElement('img');
     img.src = S.enemy.img;
     img.alt = S.enemy.name || S.enemy.key;
-    img.style.maxWidth = "60%";
-    img.style.maxHeight = "100px";
-    img.style.display = "block";
-    img.style.margin = "0 auto 8px";
-    img.style.border = "1px solid #263774";
-    img.style.borderRadius = "12px";
-    img.style.imageRendering = "pixelated";
+    img.style.maxWidth = '60%';
+    img.style.maxHeight = '100px';
+    img.style.display = 'block';
+    img.style.margin = '0 auto 8px';
+    img.style.border = '1px solid #263774';
+    img.style.borderRadius = '12px';
+    img.style.imageRendering = 'pixelated';
     log.appendChild(img);
   }
 
   // Make sure the HP pill shows the starting HP right away
-  if (S.enemy) $("#combatEnemyHp").textContent = `HP ${S.enemy.hp}`;
+  if (S.enemy) $('#combatEnemyHp').textContent = `HP ${S.enemy.hp}`;
 
-  addCombatLog(openingLine, "warn");
+  addCombatLog(openingLine, 'warn');
   try {
     combatModal?.showModal();
   } catch {}
 }
-document.getElementById("invModal")?.addEventListener("close", () => {
+document.getElementById('invModal')?.addEventListener('close', () => {
   // If the player is still in combat, bring the combat modal back to the top layer.
   if (resumeCombatAfterInv && S.enemy && !combatModal?.open) {
     setTimeout(() => {
@@ -3166,98 +3270,97 @@ function closeCombat(force = false) {
       } catch {}
     }, 0);
   }
-  if (!force) addLog("The dust settles.");
+  if (!force) addLog('The dust settles.');
 }
 
-document.getElementById("dirUp")?.addEventListener("click", () => move(0, -1));
-document.getElementById("dirDown")?.addEventListener("click", () => move(0, 1));
+document.getElementById('dirUp')?.addEventListener('click', () => move(0, -1));
+document.getElementById('dirDown')?.addEventListener('click', () => move(0, 1));
 document
-  .getElementById("dirLeft")
-  ?.addEventListener("click", () => move(-1, 0));
+  .getElementById('dirLeft')
+  ?.addEventListener('click', () => move(-1, 0));
 document
-  .getElementById("dirRight")
-  ?.addEventListener("click", () => move(1, 0));
+  .getElementById('dirRight')
+  ?.addEventListener('click', () => move(1, 0));
 
-document.getElementById("actRest")?.addEventListener("click", rest);
-document.getElementById("actWait")?.addEventListener("click", waitTurn);
+document.getElementById('actRest')?.addEventListener('click', rest);
+document.getElementById('actWait')?.addEventListener('click', waitTurn);
 document
-  .getElementById("actInventory")
-  ?.addEventListener("click", openInventoryModal);
+  .getElementById('actInventory')
+  ?.addEventListener('click', openInventoryModal);
 
 // Optional Scout button if present
-document.getElementById("actScout")?.addEventListener("click", useScoutPulse);
+document.getElementById('actScout')?.addEventListener('click', useScoutPulse);
 
 document
-  .getElementById("combatAttack")
-  ?.addEventListener("click", () => playerAttack());
+  .getElementById('combatAttack')
+  ?.addEventListener('click', () => playerAttack());
 document
-  .getElementById("combatFlee")
-  ?.addEventListener("click", () => tryFlee());
+  .getElementById('combatFlee')
+  ?.addEventListener('click', () => tryFlee());
 document
-  .getElementById("combatInventory")
-  ?.addEventListener("click", openInventoryModal);
+  .getElementById('combatInventory')
+  ?.addEventListener('click', openInventoryModal);
 document
-  .getElementById("combatClose")
-  ?.addEventListener("click", () => closeCombat());
+  .getElementById('combatClose')
+  ?.addEventListener('click', () => closeCombat());
 
-document.getElementById("shopClose")?.addEventListener("click", () => {
+document.getElementById('shopClose')?.addEventListener('click', () => {
   if (shopModal?.open) shopModal.close();
   S._offers = null;
 });
 
-document.getElementById("invClose")?.addEventListener("click", () => {
-  const m = document.getElementById("invModal");
+document.getElementById('invClose')?.addEventListener('click', () => {
+  const m = document.getElementById('invModal');
   if (m?.open) m.close();
 });
 
-document.getElementById("newGame")?.addEventListener("click", newGame);
-document.getElementById("saveGame")?.addEventListener("click", saveGame);
-document.getElementById("loadGame")?.addEventListener("click", loadGame);
+document.getElementById('newGame')?.addEventListener('click', newGame);
+document.getElementById('saveGame')?.addEventListener('click', saveGame);
+document.getElementById('loadGame')?.addEventListener('click', loadGame);
 
-document.addEventListener("keydown", (e) => {
+document.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
 
   // If in combat, handle combat hotkeys only
-  if (document.getElementById("combatModal")?.open) {
-    if (k === "a") document.getElementById("combatAttack")?.click();
-    else if (k === "f") document.getElementById("combatFlee")?.click();
-    else if (k === "i") openInventoryModal();
-    else if (k === "escape") document.getElementById("combatClose")?.click();
+  if (document.getElementById('combatModal')?.open) {
+    if (k === 'a') document.getElementById('combatAttack')?.click();
+    else if (k === 'f') document.getElementById('combatFlee')?.click();
+    else if (k === 'i') openInventoryModal();
+    else if (k === 'escape') document.getElementById('combatClose')?.click();
     return;
   }
 
   // --- Shortcuts with modifiers (handle first) ---
-  if ((e.ctrlKey || e.metaKey) && k === "s") {
+  if ((e.ctrlKey || e.metaKey) && k === 's') {
     e.preventDefault();
-    document.getElementById("saveGame")?.click();
+    document.getElementById('saveGame')?.click();
     return;
   }
 
   // --- Movement / actions ---
-  if (k === "w" || e.key === "ArrowUp")
-    document.getElementById("dirUp")?.click();
-  else if (k === "s" || e.key === "ArrowDown")
-    document.getElementById("dirDown")?.click();
-  else if (k === "a" || e.key === "ArrowLeft")
-    document.getElementById("dirLeft")?.click();
-  else if (k === "d" || e.key === "ArrowRight")
-    document.getElementById("dirRight")?.click();
-  else if (k === "r") document.getElementById("actRest")?.click();
-  else if (k === " ") {
+  if (k === 'w' || e.key === 'ArrowUp')
+    document.getElementById('dirUp')?.click();
+  else if (k === 's' || e.key === 'ArrowDown')
+    document.getElementById('dirDown')?.click();
+  else if (k === 'a' || e.key === 'ArrowLeft')
+    document.getElementById('dirLeft')?.click();
+  else if (k === 'd' || e.key === 'ArrowRight')
+    document.getElementById('dirRight')?.click();
+  else if (k === 'r') document.getElementById('actRest')?.click();
+  else if (k === ' ') {
     e.preventDefault();
-    document.getElementById("actWait")?.click();
-  } else if (k === "i") document.getElementById("actInventory")?.click();
-  else if (k === "x") useScoutPulse(); // Hotkey for Explorer bonus
-  else if (k === "n") document.getElementById("newGame")?.click();
-  else if (k === "l") document.getElementById("loadGame")?.click();
+    document.getElementById('actWait')?.click();
+  } else if (k === 'i') document.getElementById('actInventory')?.click();
+  else if (k === 'x') useScoutPulse(); // Hotkey for Explorer bonus
+  else if (k === 'n') document.getElementById('newGame')?.click();
+  else if (k === 'l') document.getElementById('loadGame')?.click();
 });
 
-const about = document.getElementById("about");
+const about = document.getElementById('about');
 document
-  .getElementById("aboutBtn")
-  ?.addEventListener("click", () => about?.showModal());
+  .getElementById('aboutBtn')
+  ?.addEventListener('click', () => about?.showModal());
 
 // Boot
 // Boot into Lobby
 openLobby();
-
