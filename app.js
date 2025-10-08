@@ -19,7 +19,7 @@ const RNG = {
   },
 };
 const TOKEN_MULT = 0.75; // tune later (e.g., 1.25 if you want juicier rewards)
-const REST_DIMINISH_FACTOR = 0.75; // try 0.90–0.95 for very gentle, 0.85 for moderate
+const REST_DIMINISH_FACTOR = 0.85; // try 0.90–0.95 for very gentle, 0.85 for moderate
 const REST_DECAY_STYLE = "gentle"; // "gentle" | "exp"
 const BOSS_FLOOR_INTERVAL = 10; // 10, 20, 30, ...
 const BOSS_MAP_SIZE = 1;
@@ -3260,3 +3260,4 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
+
