@@ -18,7 +18,7 @@ const RNG = {
     return Math.random() * 100 < pct;
   },
 };
-const TOKEN_MULT = 0.5; // tune later (e.g., 1.25 if you want juicier rewards)
+const TOKEN_MULT = 0.75; // tune later (e.g., 1.25 if you want juicier rewards)
 const REST_DIMINISH_FACTOR = 0.75; // try 0.90–0.95 for very gentle, 0.85 for moderate
 const REST_DECAY_STYLE = "gentle"; // "gentle" | "exp"
 const BOSS_FLOOR_INTERVAL = 10; // 10, 20, 30, ...
@@ -26,7 +26,7 @@ const BOSS_MAP_SIZE = 1;
 // ---- Meta (stubbed) ----
 // Persisted player-wide upgrades (not items). Adjust values here to test.
 
-const COST_MULT = 2.0; // nudge whole economy: 0.9 cheaper, 1.2 pricier, etc.
+const COST_MULT = 1.0; // nudge whole economy: 0.9 cheaper, 1.2 pricier, etc.
 
 // Linear → Exponential after an elbow.
 // tier is the number of tiers already owned (0-based).
@@ -254,7 +254,7 @@ const ENEMIES = [
     key: "tumekens_shadow",
     name: "Tumeken's Shadow",
     hp: 90,
-    atk: [5, 30],
+    atk: [3, 30],
     gold: [100, 300],
     xp: 250,
     img: "assets/temekensshadowSVG.svg",
@@ -263,8 +263,8 @@ const ENEMIES = [
   {
     key: "tumeken",
     name: "Tumeken",
-    hp: 300,
-    atk: [5, 35],
+    hp: 160,
+    atk: [3, 24],
     gold: [1000, 3000],
     xp: 2500,
     img: "assets/tumekenSVG.svg",
@@ -273,8 +273,8 @@ const ENEMIES = [
   {
     key: "nightmare",
     name: "Nightmare",
-    hp: 350,
-    atk: [8, 30],
+    hp: 190,
+    atk: [3, 30],
     gold: [1000, 5000],
     xp: 3000,
     img: "assets/boss1SVG.svg",
@@ -288,7 +288,7 @@ const BOSSES = [
     depth: 10,
     key: "guardian_idol",
     name: "Guardian Idol",
-    hp: 200,
+    hp: 230,
     atk: [5, 22],
     gold: [100, 2400],
     xp: 250,
@@ -312,7 +312,7 @@ const BOSSES = [
     key: "abyssal_wyrmling",
     name: "Abyssal Wyrmling",
     hp: 300,
-    atk: [5, 25],
+    atk: [3, 25],
     gold: [200, 3500],
     xp: 550,
     img: "assets/abyssalwyrmSVG.svg",
@@ -333,7 +333,7 @@ const BOSSES = [
     key: "abyssal_wyrm",
     name: "Abyssal Wyrm",
     hp: 450,
-    atk: [5, 35],
+    atk: [4, 35],
     gold: [500, 3500],
     xp: 750,
     img: "assets/abyssalwyrmSVG.svg",
@@ -352,7 +352,7 @@ const BOSSES = [
     key: "guardian_idol",
     name: "Guardian Idol",
     hp: 500,
-    atk: [5, 40],
+    atk: [2, 40],
     gold: [1000, 5000],
     xp: 1000,
     img: "assets/guardianidolSVG.svg",
@@ -2070,7 +2070,7 @@ function doTreasureChest() {
         gainGold(gold);
       } else {
         const loot = RNG.pick(LOOT_TABLE);
-        addItem(loot.key, 1);
+        addItem(loot.key, 2);
         addLog(`Inside: <strong>${loot.name}</strong>.`, "good");
       }
     },
