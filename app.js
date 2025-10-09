@@ -2879,8 +2879,21 @@ function move(dx, dy) {
 }
 
 function rest() {
+  // Optional safety: don't allow resting mid-fight or while any dialog is up
+  if (S.enemy) {
+    addLog("You can't rest while threatened!", "warn");
+    return;
+  }
+  if (
+    document.querySelector("dialog[open]")?.id &&
+    document.querySelector("dialog[open]")?.id !== "combatModal"
+  ) {
+    addLog("Now isn't the time to rest.", "warn");
+    return;
+  }
+
   const diminish = restDiminish(S.restsThisFloor);
-  const base = RNG.int(2, 6) * getHealMult(); // slightly tighter band plays nicer with decay
+  const base = RNG.int(2, 6) * getHealMult(); // your existing decay-friendly band
   const extra = Math.max(0, base - 1);
   const decayedExtra = Math.floor(extra * diminish);
   const heal = Math.max(1, 1 + decayedExtra); // always at least 1 HP
@@ -2896,9 +2909,15 @@ function rest() {
     "good"
   );
 
-  if (RNG.chance(25)) {
-    addLog("You hear something behind you!", "warn");
-    rollEncounter({ forbidEvents: true });
+  // Only other possible outcome: 25% chance to spawn a normal enemy.
+  // Preserve the rule that boss floors don't do random encounters.
+  if (!isBossFloor(S.depth) && RNG.chance(10)) {
+    addLog("Your rest is disturbed…", "warn");
+    S.enemy = pickEnemyBiased(S.depth);
+    setEncounterStatus("Enemy!");
+    openCombat(
+      `A <strong>${S.enemy.name}</strong> catches you off guard! (HP ${S.enemy.hp})`
+    );
   }
 
   renderStats();
@@ -3364,4 +3383,5 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
+
 
