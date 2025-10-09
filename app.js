@@ -2896,7 +2896,7 @@ function rest() {
     "good"
   );
 
-  if (RNG.chance(15)) {
+  if (RNG.chance(25)) {
     addLog("You hear something behind you!", "warn");
     rollEncounter({ forbidEvents: true });
   }
@@ -3364,3 +3364,4 @@ document
 // Boot
 // Boot into Lobby
 openLobby();
+
